@@ -1,200 +1,328 @@
-#############################################################################
-#
-# CMAKE file for building tkLayout software
-#
-#  Author: Z. Drasal, CERN
-#
-#############################################################################
+cmake_minimum_required(VERSION 3.26 FATAL_ERROR)
+project(tkLayout LANGUAGES C CXX)
 
-#----------------------------------------------------------------------------
-# CMAKE compatibility issues
-CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
+# Use GNU-style directory hierarchy
+include(GNUInstallDirs)
 
-#----------------------------------------------------------------------------
-# Project name and version
-PROJECT(tklayout)
+# ---Dependencies-----------------------------------------------------------
 
-#----------------------------------------------------------------------------
-# Project options
-OPTION(INSTALL_DOC "Set to ON to build/install Documentation" OFF )
+# Find packages
+if (NOT TARGET ROOT)
+    find_package(ROOT COMPONENTS Geom RIO HistPainter REQUIRED)
+endif()
+include(${ROOT_USE_FILE})
 
+if (NOT TARGET Boost)
+    find_package(Boost COMPONENTS program_options filesystem system json REQUIRED)
+endif()
 
-# using cache lets users override with " cmake -DCMAKE_CXX_STANDARD=14 .. "
-SET(CMAKE_CXX_STANDARD 17 CACHE STRING "")
-add_compile_options(-Wall -Werror -fmax-errors=2 -g)
+include_directories(${BOOST_INCLUDE_DIRS}
+                    ${ROOT_INCLUDE_DIRS} 
+                    ${PROJECT_SOURCE_DIR}/include/
+                    ${PROJECT_SOURCE_DIR}/include/AnalyzerVisitors
+                    ${PROJECT_SOURCE_DIR}/include/InnerCabling
+                    ${PROJECT_SOURCE_DIR}/include/OuterCabling
+)
 
+# ---Options and flags-----------------------------------------------------------
 
+# Installation options
+option(TKLAYOUT_WITH_DOC "Whether or not to create doxygen doc target." OFF)
+option(TKG_UPDATE_CONFIG "Whether or not to update the configuration." OFF)
+set(TKG_LAYOUTDIRECTORY "$ENV{HOME}/www/layouts" CACHE PATH "Web server output directory")
+set(TKG_STANDARDDIRECTORY "$ENV{HOME}/tkgeometry" CACHE PATH "Standard output directory")
+set(TKG_MOMENTA "1.00, 10.00, 100.00" CACHE STRING "List of transverse momenta for the tracking performance test (in GeV/c)")
+set(TKG_TRIGGERMOMENTA "1.00, 2.00, 5.00, 10.00" CACHE STRING "List of transverse momenta for the efficiency performance test (in GeV/c)")
+set(TKG_THRESHOLD_PROB "1.00, 50.00, 90.00, 95.00" CACHE STRING "List of trigger efficiency for the pt threshold find test (in %)")
 
-# Output directories
-SET( EXECUTABLE_OUTPUT_PATH "${PROJECT_BINARY_DIR}/bin" CACHE PATH
-    "EXECUTABLE_OUTPUT_PATH" FORCE )
-SET( LIBRARY_OUTPUT_PATH "${PROJECT_BINARY_DIR}/lib" CACHE PATH
-    "LIBRARY_OUTPUT_PATH" FORCE )
-MARK_AS_ADVANCED( EXECUTABLE_OUTPUT_PATH LIBRARY_OUTPUT_PATH )
+# Define the config file path
+set(TKG_CONFIG_FILE "$ENV{HOME}/.tkgeometryrc")
 
+# Look for the tkLayout configuration file
+if(NOT EXISTS "${TKG_CONFIG_FILE}" OR TKG_UPDATE_CONFIG)
+  message(STATUS "Configuring new environment at ${TKG_CONFIG_FILE}...")
 
-#----------------------------------------------------------------------------
-# Project dependencies
+  # Set the .tkgeometryrc TKG_BINDIRECTORY so it matches the CMAKE_INSTALL_PREFIX
+  set(TKG_BINDIRECTORY ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 
-FIND_PACKAGE( Boost COMPONENTS program_options filesystem system json REQUIRED )
+  # Check if the directories exist and create them if not
+  file(MAKE_DIRECTORY "${TKG_BINDIRECTORY}")
+  file(MAKE_DIRECTORY "${TKG_LAYOUTDIRECTORY}")
+  file(MAKE_DIRECTORY "${TKG_STANDARDDIRECTORY}")
 
-find_package(ROOT COMPONENTS Geom RIO HistPainter)
-include_directories(${ROOT_INCLUDE_DIRS})
-link_libraries(${ROOT_LIBRARIES})
+  # Create the configuration file from the template
+  configure_file("${PROJECT_SOURCE_DIR}/cmake/tkgeometryrc.in" 
+                 "${TKG_CONFIG_FILE}" @ONLY)
+else()
+  message(STATUS "Reading existing configuration from ${TKG_CONFIG_FILE}...")
 
+  # Read the file into a list of strings
+  file(STRINGS "${TKG_CONFIG_FILE}" ConfigLines)
+  # Loop through each line to parse "KEY=VALUE"
+  foreach(LINE IN LISTS ConfigLines)
+    # Regex matches: Optional 'export ', then KEY, then =, then VALUE
+    if(LINE MATCHES "^(export[ \t]+)?([A-Za-z0-9_]+)=(.*)$")
+      # CMAKE_MATCH_2 is the KEY (e.g., TKG_BINDIRECTORY)
+      set(KEY "${CMAKE_MATCH_2}")
+      # CMAKE_MATCH_3 is the VALUE (e.g., /home/user/bin)
+      set(VAL "${CMAKE_MATCH_3}")
+      # Optional: Remove surrounding quotes if bash used them (VAR="Val")
+      string(REGEX REPLACE "^[\"']|[\"']$" "" VAL "${VAL}")
+      # Set the variable in CMake
+      set(${KEY} "${VAL}")
+    endif()
+  endforeach()
 
-#----------------------------------------------------------------------------
-# Include, source, dirs 
-#
+  # Set the CMAKE_INSTALL_PREFIX so it matches the .tkgeometryrc TKG_BINDIRECTORY
+  cmake_path(GET TKG_BINDIRECTORY PARENT_PATH CMAKE_INSTALL_PREFIX)
+endif()
 
+# # Doxygen documentation
+# if(TKLAYOUT_WITH_DOC)
+#     add_subdirectory(doc)
+# endif()
 
+# Set the C++ standard to the one required by ROOT
+# Note: ROOT_CXX_STANDARD not working for some reason
+set(CMAKE_CXX_FLAGS ${ROOT_CXX_FLAGS})
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Export compile commands for clangd and other tools
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR}
-                     ${ROOT_INCLUDE_DIRS} 
-                     ${PROJECT_SOURCE_DIR}/include/
-                     ${PROJECT_SOURCE_DIR}/include/AnalyzerVisitors
-                     ${PROJECT_SOURCE_DIR}/include/InnerCabling
-                     ${PROJECT_SOURCE_DIR}/include/OuterCabling
-                     )
+# List of targets
+set(INSTALLABLE_TARGETS "")
 
-FILE( GLOB all_sources ${PROJECT_SOURCE_DIR}/src/*.cc 
-                       ${PROJECT_SOURCE_DIR}/src/AnalyzerVisitors/*.cc 
-                       ${PROJECT_SOURCE_DIR}/src/InnerCabling/*.cc 
-                       ${PROJECT_SOURCE_DIR}/src/OuterCabling/*.cc)
-FILE( GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh 
-                   ${PROJECT_SOURCE_DIR}/include/AnalyzerVisitors*.hh 
-                   ${PROJECT_SOURCE_DIR}/include/InnerCabling*.hh 
-                   ${PROJECT_SOURCE_DIR}/include/OuterCabling*.hh)
+# Compile options for all targets
+add_compile_options(-Wall
+                    -Werror
+                    -fmax-errors=2
+                    -O3
+                    -g
+                    )
 
-# Exlude files with main function defined
-SET ( sources "" )
-FOREACH( file ${all_sources} )
- IF ( ${file} MATCHES "MaterialSection.cc" OR ${file} MATCHES "HoughTrack.cc" OR
-      ${file} MATCHES "TrackShooter.cc" OR ${file} MATCHES "tunePtParam.cc" OR ${file} MATCHES "diskPlace.cc")
-   SET ( APPEND source_other ${file} )
-   MESSAGE( STATUS "Omitting the following ?buggy? file: ${file} !!!" ) 
- ELSEIF( ${file} MATCHES "tklayout.cc" OR ${file} MATCHES "setup.cc" OR ${file} MATCHES "delphize.cc" )
-   IF ( ${file} MATCHES "tklayout.cc" ) 
-     SET( source_tklayout ${file} )
-   ENDIF()
-   IF ( ${file} MATCHES "setup.cc" ) 
-     SET( source_setup ${file} )
-   ENDIF()
-   IF ( ${file} MATCHES "delphize.cc" )
-     SET( source_delphize ${file} )
-   ENDIF()
- ELSE()
-   IF( ${file} MATCHES "MainConfigHandler.cc" )
-     SET( source_mainhandler ${file} )
-   ENDIF()
-   IF( ${file} MATCHES "global_funcs.cc" )
-     SET( source_globalfunctions ${file} )
-   ENDIF()
-   IF( ${file} MATCHES "GraphVizCreator.cc" )
-     SET( source_graphvizcreator ${file} )
-   ENDIF()
-   LIST( APPEND sources ${file} )
- ENDIF()
-ENDFOREACH()
+add_link_options("-Wl,--copy-dt-needed-entries")
 
-#----------------------------------------------------------------------------
-# Set revision
-# a custom target that is always built
-ADD_CUSTOM_TARGET(revisiontag ALL)
+# ---Source groups-----------------------------------------------------------
 
-# creates svnversion.hh using cmake script
-ADD_CUSTOM_COMMAND(TARGET revisiontag COMMAND ${CMAKE_COMMAND}
-   -DSOURCE_DIR=${CMAKE_SOURCE_DIR} 
-   -P ${CMAKE_SOURCE_DIR}/GetGitVersion.cmake)
+# Core Objects (OBJS)
+set(SOURCES_CORE
+  src/Analyzer.cc
+  src/AnalyzerTools.cc
+  src/AnalyzerVisitor.cc
+  src/Bag.cc
+  src/Barrel.cc
+  src/capabilities.cc
+  src/ConversionStation.cc
+  src/CoordinateOperations.cc
+  src/DetectorModule.cc
+  src/DetIdBuilder.cc
+  src/Disk.cc
+  src/Endcap.cc
+  src/Extractor.cc
+  src/GeometricModule.cc
+  src/global_funcs.cc
+  src/GraphVizCreator.cc
+  src/Histo.cc
+  src/Hit.cc
+  src/InactiveElement.cc
+  src/InactiveRing.cc
+  src/InactiveSurfaces.cc
+  src/InactiveTube.cc
+  src/IrradiationMap.cc
+  src/IrradiationMapsManager.cc
+  src/Layer.cc
+  src/MainConfigHandler.cc
+  src/MatCalc.cc
+  src/MatCalcDummy.cc
+  src/MaterialBudget.cc
+  src/MaterialObject.cc
+  src/MaterialProperties.cc
+  src/MaterialTab.cc
+  src/MaterialTable.cc
+  src/Materialway.cc
+  src/MatParser.cc
+  src/MessageLogger.cc
+  src/ModuleCap.cc
+  src/Module.cc
+  src/Palette.cc
+  src/PlotDrawer.cc
+  src/Polygon3d.cc
+  src/Property.cc
+  src/PtError.cc
+  src/PtErrorAdapter.cc
+  src/ReportIrradiation.cc
+  src/ReportModuleCount.cc
+  src/Ring.cc
+  src/RodPair.cc
+  src/RootWeb.cc
+  src/Sensor.cc
+  src/SimParms.cc
+  src/Squid.cc
+  src/StopWatch.cc
+  src/SummaryTable.cc
+  src/SupportStructure.cc
+  src/tk2CMSSW.cc
+  src/Tracker.cc
+  src/Track.cc
+  src/Usher.cc
+  src/Vizard.cc
+  src/WeightDistributionGrid.cc
+  src/XMLWriter.cc
+)
 
-#--------------------------------------------------------
-SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)            # Set automatically rpath for dynamic linking of external libraries
-SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib") # Set automatically rpath for dynamic linking of internally created & installed libraries
+# Analyzer Visitors
+set(SOURCES_ANALYZER_VISITORS
+  src/AnalyzerVisitors/Bandwidth.cc
+  src/AnalyzerVisitors/GeometricInfo.cc
+  src/AnalyzerVisitors/IrradiationPower.cc
+  src/AnalyzerVisitors/MaterialBillAnalyzer.cc
+  src/AnalyzerVisitors/TriggerDistanceTuningPlots.cc
+  src/AnalyzerVisitors/TriggerFrequency.cc
+  src/AnalyzerVisitors/TriggerProcessorBandwidth.cc
+  src/AnalyzerVisitors/ModuleCount.cc
+  src/AnalyzerVisitors/JsonVisitor.cc
+)
 
-ADD_EXECUTABLE(tklayout ${source_tklayout} ${sources} ${headers} )
-ADD_EXECUTABLE(setup.bin ${source_setup} ${source_graphvizcreator} ${source_mainhandler} ${source_globalfunctions} ${headers} )
-ADD_EXECUTABLE(delphize ${source_delphize} )
+# Outer Cabling
+set(SOURCES_OUTER_CABLING
+  src/OuterCabling/OuterBundle.cc
+  src/OuterCabling/OuterCable.cc
+  src/OuterCabling/outer_cabling_constants.cc
+  src/OuterCabling/outer_cabling_functions.cc
+  src/OuterCabling/OuterCablingMap.cc
+  src/OuterCabling/OuterDTC.cc
+  src/OuterCabling/OuterGBT.cc
+  src/OuterCabling/ModulesToBundlesConnector.cc
+  src/OuterCabling/PhiPosition.cc
+  src/OuterCabling/ServicesChannel.cc
+)
 
-# explicitly say that the executable depends on custom target
-ADD_DEPENDENCIES(tklayout revisiontag)
+# Inner Cabling
+set(SOURCES_INNER_CABLING
+  src/InnerCabling/GBT.cc
+  src/InnerCabling/HvLine.cc
+  src/InnerCabling/inner_cabling_constants.cc
+  src/InnerCabling/inner_cabling_functions.cc
+  src/InnerCabling/InnerBundle.cc
+  src/InnerCabling/InnerDTC.cc
+  src/InnerCabling/InnerCablingMap.cc
+  src/InnerCabling/ModulesToPowerChainsConnector.cc
+  src/InnerCabling/PowerChain.cc
+)
 
-TARGET_LINK_LIBRARIES(tklayout ${Boost_LIBRARIES} ${ROOT_LIBRARIES})
-TARGET_LINK_LIBRARIES(setup.bin ${Boost_LIBRARIES} )
-TARGET_LINK_LIBRARIES(delphize ${Boost_LIBRARIES} ${ROOT_LIBRARIES} )
+# ---SVN revision logic-----------------------------------------------------------
 
-#----------------------------------------------------------------------------
-# Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
-#
-INSTALL(TARGETS tklayout  RUNTIME DESTINATION bin)
-INSTALL(TARGETS setup.bin RUNTIME DESTINATION bin)
-INSTALL(TARGETS delphize  RUNTIME DESTINATION bin)
+# The Makefile runs ./getRevisionDefine to generate a flag (e.g. -DREVISION=123)
+# We execute this at CMake configure time.
+execute_process(
+    COMMAND "./getRevisionDefine"
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE SVN_REV_DEFINE
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+message(STATUS "SVN Revision Flags: ${SVN_REV_DEFINE}")
 
-INSTALL(DIRECTORY style DESTINATION share/tkLayout)
-INSTALL(DIRECTORY xml DESTINATION share/tkLayout)
-INSTALL(DIRECTORY geometries DESTINATION share/tkLayout)
-INSTALL(DIRECTORY config DESTINATION share/tkLayout)
+# ---Build executables-----------------------------------------------------------
 
-IF(CMAKE_HOST_UNIX)
-    
-    # Set the default version of SvnRevision.cc file
-    INSTALL( CODE "MESSAGE(STATUS \"Setting SvnRevision.cc to default\" )
-                   EXECUTE_PROCESS(COMMAND bash -c \"if [ -e SvnRevision.orig.cc ]; then rm -f ${PROJECT_SOURCE_DIR}/src/SvnRevision.cc; mv SvnRevision.orig.cc ${PROJECT_SOURCE_DIR}/src/SvnRevision.cc; fi\")" )
-    
+# Main Executable: tklayout
+# Corresponds to dependencies: OBJS + ANALYZERVISITORS + OUTERCABLING + INNERCABLING + SvnRevision.o
+add_executable(tklayout
+  src/tklayout.cc
+  src/SvnRevision.cc
+  ${SOURCES_CORE}
+  ${SOURCES_ANALYZER_VISITORS}
+  ${SOURCES_OUTER_CABLING}
+  ${SOURCES_INNER_CABLING}
+)
+target_link_libraries(tklayout
+  PUBLIC
+  ${ROOT_LIBRARIES}
+  Boost::system
+  Boost::filesystem
+  Boost::program_options
+  Boost::json
+)
+list(APPEND INSTALLABLE_TARGETS tklayout)
 
-    # Configure tkLayout
-    #INSTALL( CODE "MESSAGE(STATUS \"Configuring tkLayout software...\" )
-    #               MESSAGE(STATUS \" Target directories setup:\" )
-    #		   EXECUTE_PROCESS(COMMAND bash -c \"if [ -e ${PROJECT_BINARY_DIR}/bin/setup.bin ]; then ${PROJECT_BINARY_DIR}/bin/setup.bin --dirNames; fi\")" ) 
-    #INSTALL( CODE "MESSAGE(STATUS \" Installation status:\" )
-    #               EXECUTE_PROCESS(COMMAND bash -c \"if ! ${PROJECT_SOURCE_DIR}/bin/setup.bin --checkDir; then echo \\\"Problem during installation\\\"; else echo \\\"Installation successful\\\"; fi\")" )
+# Question, probably no longer needed
+# add_executable(setup.bin ${SOURCE_SETUP} ${SOURCE_GRAPHVIZCREATOR} ${SOURCE_MAINHANDLER} ${SOURCE_GLOBALFUNCTIONS} ${HEADERS})
+# target_link_libraries(setup.bin ${BOOST_LIBRARIES})
 
-ENDIF()
+# Question, probably no longer needed
+# target_link_libraries(delphize ${BOOST_LIBRARIES} ${ROOT_LIBRARIES})
+# add_executable(delphize ${SOURCE_DELPHIZE})
 
-#----------------------------------------------------------------------------
-# Documentation
-#
-# Find Doxygen
-IF( INSTALL_DOC )
-FIND_PACKAGE( Doxygen )
-IF( DOXYGEN_FOUND )
+# Setup Executable
+# Corresponds to: MainConfigHandler.o global_funcs.o GraphVizCreator.o setup.cc
+add_executable(setup
+  src/setup.cc
+  src/MainConfigHandler.cc
+  src/global_funcs.cc
+  src/GraphVizCreator.cc
+)
+target_link_libraries(setup ${ROOT_LIBRARIES} Boost::system Boost::filesystem)
+list(APPEND INSTALLABLE_TARGETS setup)
 
-    # Add doc target
-    ADD_CUSTOM_TARGET( doc ) 
-    ADD_CUSTOM_COMMAND( TARGET doc
-        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-                "${PROJECT_SOURCE_DIR}/README.md" "${PROJECT_SOURCE_DIR}/doc/README.md"    
-        COMMAND "${DOXYGEN_EXECUTABLE}" ARGS "Doxyfile"
-        WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/doc"
-        COMMENT "Building API Documentation in ${PROJECT_SOURCE_DIR}/doc... "
-        VERBATIM )
+# Lightweight Executables
 
-ELSE()
-    MESSAGE( STATUS "Doxygen not found in your system!!" )
-    IF( INSTALL_DOC )
-        MESSAGE( STATUS "INSTALL_DOC forced to OFF" )
-        SET( INSTALL_DOC OFF )
-    ENDIF()
-ENDIF()
+# diskPlace
+add_executable(diskPlace src/diskPlace.cc)
+list(APPEND INSTALLABLE_TARGETS diskPlace)
 
-# Install documentation
-    # make sure doxygen is executed (make doc) before make install
-    INSTALL( CODE "EXEC_PROGRAM(${CMAKE_BUILD_TOOL} ${PROJECT_BINARY_DIR} ARGS doc)" )
-    # install documentation
-    INSTALL( DIRECTORY "${PROJECT_SOURCE_DIR}/doc"
-            DESTINATION .
-            PATTERN "*CVS*" EXCLUDE )
-ENDIF()
+# ringPlace
+add_executable(ringPlace src/ringPlace.cc)
+list(APPEND INSTALLABLE_TARGETS ringPlace)
 
+# ringName
+add_executable(ringName src/ringName.cc)
+list(APPEND INSTALLABLE_TARGETS ringName)
 
-#----------------------------------------------------------------------------
-# Uninstall 
-#
-CONFIGURE_FILE(
-    "${CMAKE_CURRENT_SOURCE_DIR}/CMakeUninstall.cmake"
-    "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-    IMMEDIATE @ONLY)
+# Apply the SVN flags specifically to SvnRevision.cc as done in the Makefile
+# The script output likely contains the "-D" prefix, so we add it to compile options
+set_source_files_properties(src/SvnRevision.cc PROPERTIES COMPILE_OPTIONS "${SVN_REV_DEFINE}")
 
-ADD_CUSTOM_TARGET(uninstall
-    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
-    
+# ---Tests-----------------------------------------------------------
+
+if(EXISTS "${CMAKE_SOURCE_DIR}/test/testGraphVizCreator.cc")
+  add_executable(testGraphVizCreator 
+    test/testGraphVizCreator.cc 
+    src/GraphVizCreator.cc
+  )
+  target_link_libraries(testGraphVizCreator 
+    ${ROOT_LIBRARIES}
+    Boost::filesystem
+    Boost::system
+  )
+endif()
+
+# ---Install-----------------------------------------------------------
+
+# Install all targets under CMAKE_INSTALL_PREFIX
+foreach(target ${INSTALLABLE_TARGETS})
+  install(TARGETS "${target}"
+          EXPORT "${PROJECT_NAME}Targets"
+          LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+          ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+          RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+endforeach()
+
+# Write install instructions
+install(EXPORT "${PROJECT_NAME}Targets"
+        FILE "${PROJECT_NAME}Targets.cmake"
+        NAMESPACE "${PROJECT_NAME}::"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
+
+# Install the style, xml and config dirs
+install(DIRECTORY style
+        DESTINATION ${TKG_LAYOUTDIRECTORY})
+install(DIRECTORY xml
+        DESTINATION ${TKG_STANDARDDIRECTORY})
+install(DIRECTORY config
+        DESTINATION ${TKG_STANDARDDIRECTORY})
+
+# Uninstall target
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMakeUninstall.cmake"
+               "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+               IMMEDIATE @ONLY)
+add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
