@@ -1,0 +1,12 @@
+akname: tklayout
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - root=6.36.08
+  - gcc=14.3.0
+  - gxx=14.3.0
+  - libboost-devel=1.85.0
+  - cmake=3.30.5
+  - make=4.4.1
+  - doxygen=1.13.2
