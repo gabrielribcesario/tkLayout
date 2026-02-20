@@ -224,14 +224,5 @@ void EndcapDetIdBuilder::visit(Sensor& s) {
 
     // NOW THAT ALL NECESSARY REFS ARE COMPUTED, BUILD SENSOR DETID !!
     s.buildDetId(geometryHierarchyIds_, geometryHierarchySizes_);
-
-    /*for (int a = 0; a < geometryHierarchyIds_.size(); a++) {
-      std::cout << "values = " << std::endl;
-      std::cout << geometryHierarchyIds_.at(a) << std::endl;
-      std::cout << "scheme = " << std::endl;
-      std::cout << geometryHierarchySizes_.at(a) << std::endl;
-      }*/
-    //std::bitset<32> test(s.myDetId());
-    //std::cout << s.myDetId() << " " << test << " " << "rho = " <<  s.hitPoly().getCenter().Rho() << " z = " <<  s.hitPoly().getCenter().Z() << " phi = " <<  (s.hitPoly().getCenter().Phi() * 180. / M_PI) << std::endl;
   }
 }

@@ -15,7 +15,6 @@ void DetectorModule::setup() {
   nominalResolutionLocalX.setup([this]() {
       // only set up this if no model parameter specified
       if (!hasAnyResolutionLocalXParam()) {
-	//std::cout << "nominalResolutionLocalX and resolutionLocalXBarrel parameters are all unset. Use of default formulae." << std::endl;
 	double res = 0;
 	for (const Sensor& s : sensors()) res += pow(meanWidth() / s.numStripsAcrossEstimate() / sqrt(12), 2);
 	return sqrt(res)/numSensors();
@@ -190,14 +189,8 @@ std::map<std::string, double> DetectorModule::extremaWithHybrids() const {
 
     double         rmin;
     double         rmax;
-    //double         xmin;
-    //double         xmax;
-    //double         ymin;
-    //double         ymax;
     double         zmin;
     double         zmax;
-    //double         rminatzmin;
-    //double         rmaxatzmax;
     std::vector<XYZVector> vertex; 
 
 
@@ -251,10 +244,6 @@ std::map<std::string, double> DetectorModule::extremaWithHybrids() const {
       zv.push_back(v_bottom[ip].Z());
     }
     // Find min and max
-    //xmin = *std::min_element(xv.begin(), xv.end());
-    //xmax = *std::max_element(xv.begin(), xv.end());
-    //ymin = *std::min_element(yv.begin(), yv.end());
-    //ymax = *std::max_element(yv.begin(), yv.end());
     zmin = *std::min_element(zv.begin(), zv.end());
     zmax = *std::max_element(zv.begin(), zv.end());
 
@@ -317,8 +306,6 @@ std::map<std::string, double> DetectorModule::extremaWithHybrids() const {
     // Find min and max
     rmin = *std::min_element(rv.begin(), rv.end());
     rmax = *std::max_element(rv.begin(), rv.end());
-    //rminatzmin = *std::min_element(ratzminv.begin(), ratzminv.end());
-    //rmaxatzmax = *std::max_element(ratzmaxv.begin(), ratzmaxv.end());
 
 
     extrema["minZ"] = zmin;
@@ -339,7 +326,6 @@ std::pair<double, double> DetectorModule::minMaxEtaWithError(double zError) cons
     double eta3 = (XYZVector(0., minR(), maxZ() + zError)).Eta();
     double eta4 = (XYZVector(0., maxR(), minZ() - zError)).Eta();
     cachedMinMaxEtaWithError_ = std::minmax({eta1, eta2, eta3, eta4});
-    //cachedMinMaxEtaWithError_ = std::make_pair(MIN(eta1, eta2), MAX(eta1, eta2));
   }
   return cachedMinMaxEtaWithError_;
 }
@@ -365,19 +351,6 @@ bool DetectorModule::couldHit(const XYZVector& direction, double zError) const {
   // ATTENTION: For wedge shaped modules, min, max procedure will not work correctly -> return true to avoid errors --> will be implemented in the future
   else return true;
 }
-
-//bool DetectorModule::couldHit(const XYZVector& direction, double zError) const {
-//  double eta = direction.Eta(), phi = direction.Phi();
-//  bool withinEta = eta > minEtaWithError(zError) && eta < maxEtaWithError(zError);
-//  bool withinPhi;
-//  if (minPhi() < 0. && maxPhi() > 0. && maxPhi()-minPhi() > M_PI) // across PI
-//    withinPhi = phi < minPhi() || phi > maxPhi();
-//  else 
-//    withinPhi = phi > minPhi() && phi < maxPhi();
-//  //bool withinPhiSub = phi-2*M_PI > minPhi() && phi-2*M_PI < maxPhi();
-//  //bool withinPhiAdd = phi+2*M_PI > minPhi() && phi+2*M_PI < maxPhi();
-//  return withinEta && (withinPhi /*|| withinPhiSub || withinPhiAdd*/);
-//}
 
 
 /*
@@ -881,7 +854,6 @@ const int DetectorModule::innerDTCPlotColor() const {
 void BarrelModule::build() {
   try {
     DetectorModule::build();
-    //myModuleCap_->setCategory(MaterialProperties::b_mod);
     decorated().rotateY(M_PI/2);
 
     rAxis_ = normal();
@@ -902,7 +874,6 @@ void BarrelModule::build() {
 void EndcapModule::build() {
   try {
     DetectorModule::build();
-    //myModuleCap_->setCategory(MaterialProperties::e_mod);
     rAxis_ = (basePoly().getVertex(0) + basePoly().getVertex(3)).Unit();
 
     // tilt
