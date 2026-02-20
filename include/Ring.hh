@@ -34,8 +34,6 @@ class TiltedRing : public PropertyObject, public Buildable, public Identifiable<
 
   double thetaStart_, thetaEnd_;
 
-  double thetaStartInner_, thetaEndInner_;
-
   double numPhi_, phiOverlap_;
 
   double rStartOuter_REAL_, zStartOuter_REAL_, rEndOuter_REAL_, zEndOuter_REAL_;
@@ -71,12 +69,12 @@ class TiltedRing : public PropertyObject, public Buildable, public Identifiable<
   void buildLeftRight(double lastThetaEnd);
   void check() override;
 
-  void accept(GeometryVisitor& v) {
-    v.visit(*this); 
+  void accept(GeometryVisitor& v) override {
+    v.visit(*this);
     for (auto& m : modules_) { m.accept(v); }
   }
-  void accept(ConstGeometryVisitor& v) const {
-    v.visit(*this); 
+  void accept(ConstGeometryVisitor& v) const override {
+    v.visit(*this);
     for (const auto& m : modules_) { m.accept(v); }
     }
 
@@ -265,11 +263,11 @@ public:
 
   void computeActualPhiCoverage();
 
-  void accept(GeometryVisitor& v) { 
-    v.visit(*this); 
+  void accept(GeometryVisitor& v) override {
+    v.visit(*this);
     for (auto& m : modules_) { m.accept(v); }
   }
-  void accept(ConstGeometryVisitor& v) const { 
+  void accept(ConstGeometryVisitor& v) const override {
     v.visit(*this); 
     for (const auto& m : modules_) { m.accept(v); }
   }

@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
       // Write help
       if (varMap.count("help")) {
         std::cout << usage << std::endl << help << std::endl;
-        return -1;
+        return EXIT_SUCCESS;
       }
 
       // Check that the provided ROOT input file corresponds to an existing file.
@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
       inputFile = new TFile(rootFileName.c_str(),"READ");
       if (!inputFile) {
         std::cerr << "File '" << rootFileName << "' does not exist" << std::endl;
-        return 0;
+        return EXIT_FAILURE;
       }
 
       // Delphes output file
@@ -166,16 +166,16 @@ int main(int argc, char* argv[]) {
       if (outFile->is_open()) {
         osp = outFile;
       } else {
-        std::cerr << "ERROR: could not open " << outFile << " -> writing config to the screen" << std::endl;
-        return -1;
+        std::cerr << "ERROR: could not open " << delphesName << " -> writing config to the screen" << std::endl;
+        return EXIT_FAILURE;
       }
     }
   }catch(boost::program_options::error& e) {
 
     // Display error type
     std::cerr << "\nERROR: " << e.what() << std::endl << std::endl;
-    std::cout << usage                   << std::endl << help << std::endl;
-    return -1;
+    std::cerr << usage                   << std::endl << help << std::endl;
+    return EXIT_FAILURE;
   }
 
 
@@ -211,7 +211,7 @@ int main(int argc, char* argv[]) {
   
   if (itPtProfiles==ptProfiles.end()) {
     std::cerr << "Error: the collection of profiles is empty" << std::endl;
-    return false;
+    return EXIT_FAILURE;
   }
   
   // First profile -> get eta, rescale bins, ...
@@ -287,5 +287,5 @@ int main(int argc, char* argv[]) {
   outFile->close();
   delete outFile;
 
-  return true;
+  return EXIT_SUCCESS;
 }

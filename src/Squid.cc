@@ -20,7 +20,7 @@ namespace insur {
    */
   Squid::Squid() :
       mainConfiguration(mainConfigHandler::instance()),
-      t2c(mainConfiguration),
+      t2c(),
       weightDistributionTracker(0.1),
       weightDistributionPixel(0.1) {
     tr = NULL;

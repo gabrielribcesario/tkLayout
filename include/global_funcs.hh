@@ -61,8 +61,8 @@ public:
     return EnumTraits<T>::data[static_cast<typename std::underlying_type<T>::type>(from)];
   }
   template<typename T> static T str2any(const std::string& from) {
-    static auto begin = std::begin(EnumTraits<T>::data);
-    static auto end = std::end(EnumTraits<T>::data); // + EnumTraits<T>::data_size;
+    auto begin = std::begin(EnumTraits<T>::data);
+    auto end = std::end(EnumTraits<T>::data); // + EnumTraits<T>::data_size;
     return static_cast<T>(std::distance(begin, std::find(begin, end, from)));
     // TODO : throw exception if string not found
   }

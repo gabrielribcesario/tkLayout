@@ -6,7 +6,7 @@
 
 #include "Property.hh"
 #include "OuterBundle.hh"
-
+#include "OuterCabling/ServicesChannel.hh"
 
 namespace insur { class DTC; }
 using insur::DTC;
