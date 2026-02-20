@@ -74,12 +74,9 @@ namespace insur {
           };
           ModuleVisitor mv;
           it->accept(mv);
-          //std::cout << "Added a layer with " << mv.myLayerModuleCaps_->size() << " modules" << std::endl;
           layerCap_.push_back(*mv.myLayerModuleCaps_);
-          //std::cout << "layerCap_.size()=" << layerCap_.size() << std::endl;
           auto lastLayerCap = layerCap_.end();
           lastLayerCap--;
-          //std::cout << "last layer cap has " << lastLayerCap->size() << " modules" << std::endl;
         }
         return layerCap_;
       }
@@ -313,7 +310,6 @@ namespace insur {
       };
 
 
-      ModuleCap&           modulecap;
       Module&              module;
       std::vector<Volume*> volumes;
       std::string          moduleId;
@@ -334,7 +330,6 @@ namespace insur {
       const double         centralDeadAreaLength;
       const double         chipNegativeXExtraWidth;
       const double         chipPositiveXExtraWidth;
-            double         hybridTotalMass;
             double         hybridTotalVolume_mm3;
             double         hybridFrontAndBackVolume_mm3;
             double         hybridLeftAndRightVolume_mm3;
