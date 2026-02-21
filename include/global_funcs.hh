@@ -138,16 +138,29 @@ inline std::string rtrim(std::string str, const std::string& chars = STD_WHITESP
  */
 inline std::string trim(std::string str, const std::string& chars = STD_WHITESPACE) { return ltrim(rtrim(str, chars), chars); }
 
-// In C++11, the default modulo operator fmod is the truncated modulo (ie -base/2 <= result < base/2).
-// Here, femod is the Euclidian modulo operator (ie 0 <= result < base).
-// Please note, though, that for double comparaison purposes, an approximation of 0., if negative, stays negative !
-template<typename ArgType> 
-inline ArgType femod(const ArgType& phi, const ArgType& base) {
-  static_assert(std::is_arithmetic<ArgType>::value, "Argument type must be numeric.");
-  ArgType result = fmod(phi, base);
-  if (fabs(result - base) < 1.e-5) result -= base;
-  if (result < -1.e-5) result += base;
-  return result;
+/**
+ * @brief Computes the floating-point Euclidean remainder of the division operation `x / y`
+ * 
+ * The Euclidean floating-point remainder of the division operation `x / y` calculated by
+ * this function is exactly the value `x - equot * |y|`, where `equot` is `floor(x / |y|)`.
+ * 
+ * The returned value is always positive and is less than `y` in magnitude.
+ * 
+ * @tparam T Arithmetic type, the type of `x` and `y`.
+ * @param x, y Floating-point or integer values.
+ * @return Euclidean floating-point remainder of the division `x / y` as defined above.
+ * @note This function leverages `std::fmod` and adjusts the results for negative remainders. 
+ * Error handling and implementation details are similar to `std::fmod`.
+ */
+template<typename T> 
+inline T femod(const T& x, const T& y) {
+  // res = x - y*round(x/y)
+  T res = std::fmod(x, y);
+  // Adjust the remainder if res < 0
+  if (std::signbit(res)) { res += std::abs(y); }
+  // res >= |y| is possible due to precision loss in FP operations, wrap the result back to 0
+  if (res >= std::abs(y)) { res = 0.; }
+  return res;
 }
 
 
