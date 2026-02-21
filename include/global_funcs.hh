@@ -108,16 +108,26 @@ std::string lctrim(std::string str, const std::string& chars);
 std::string rctrim(std::string str, const std::string& chars);
 std::string ctrim(std::string str, const std::string& chars);
 
-// In C++11, the default modulo operator fmod is the truncated modulo (ie -base/2 <= result < base/2).
-// Here, femod is the Euclidian modulo operator (ie 0 <= result < base).
-// Please note, though, that for double comparaison purposes, an approximation of 0., if negative, stays negative !
-template<typename ArgType> 
-inline ArgType femod(const ArgType& phi, const ArgType& base) {
-  static_assert(std::is_arithmetic<ArgType>::value, "Argument type must be numeric.");
-  ArgType result = fmod(phi, base);
-  if (fabs(result - base) < 1.e-5) result -= base;
-  if (result < -1.e-5) result += base;
-  return result;
+/**
+ * @brief Numerically stable Euclidean modulo
+ * 
+ * Numerically stable computation of `x - floor(x/k)` for
+ * floating point arithmetic
+ * 
+ * @tparam T Arithmetic type, the type of `x` and `k`
+ * @param x Dividend
+ * @param k Divisor
+ * @note This function first computes `std::fmod` and adjusts 
+ * the result if `sgn(x) != sgn(k)`
+ */
+template<typename T> 
+inline T femod(const T& x, const T& k) {
+  static_assert(std::is_arithmetic<T>::value, "Argument type must be numeric.");
+  // y = x - round(x/k)
+  T y = std::fmod(x, k);
+  // Adjust the remainder so that y = x - floor(x/k)
+  if (y != 0.0 && (std::signbit(x) != std::signbit(k))) { y += k; }
+  return y;
 }
 
 
