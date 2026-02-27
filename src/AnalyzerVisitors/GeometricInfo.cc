@@ -1,4 +1,25 @@
-#include <AnalyzerVisitors/GeometricInfo.hh>
+#include <string>
+
+#include "VizardTools.hh"
+#include "RootWeb.hh"
+#include "SimParms.hh"
+#include "Endcap.hh"
+#include "Layer.hh"
+#include "TagMaker.hh"
+#include "DetectorModule.hh"
+#include "Ring.hh"
+#include "Barrel.hh"
+#include "Disk.hh"
+#include "SupportStructure.hh"
+#include "AnalyzerVisitors/GeometricInfo.hh"
+#include "OuterCabling/OuterCable.hh"
+#include "OuterCabling/OuterDTC.hh"
+#include "OuterCabling/OuterGBT.hh"
+#include "InnerCabling/PowerChain.hh"
+#include "InnerCabling/GBT.hh"
+#include "InnerCabling/InnerBundle.hh"
+#include "InnerCabling/InnerDTC.hh"
+#include "InnerCabling/GBT.hh"
 
 
    //**************************************//

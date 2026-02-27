@@ -1,13 +1,16 @@
 #ifndef _GEOMETRICINFO_HH
 #define	_GEOMETRICINFO_HH
 
-#include <global_constants.hh>
-#include <VizardTools.hh>
-#include <Tracker.hh>
-#include <SimParms.hh>
-#include <TagMaker.hh>
-#include <RootWeb.hh>
+#include <string>
+#include <vector>
+#include <map>
+#include <set>
 
+#include "global_constants.hh"
+#include "Visitor.hh"
+
+class RootWTable;
+class DetectorModule;
 
     //**************************************//
     //*             Visitor                *//
@@ -134,7 +137,7 @@ public:
     //************************************//
 class TrackerVisitor : public ConstGeometryVisitor {
   std::stringstream output_;
-  string sectionName_;
+  std::string sectionName_;
   int layerId_;
 
 public:
@@ -155,7 +158,7 @@ public:
     //************************************//
 class BarrelVisitor : public ConstGeometryVisitor {
   std::stringstream output_;
-  string barName_;
+  std::string barName_;
   int layId_;
   int numRods_;
 
@@ -175,7 +178,7 @@ public:
     //************************************//
 class EndcapVisitor : public ConstGeometryVisitor {
   std::stringstream output_;
-  string endcapName_;
+  std::string endcapName_;
   int diskId_;
 
 public:
@@ -195,7 +198,7 @@ public:
     //************************************//
 class TrackerSensorVisitor : public SensorGeometryVisitor {
   std::stringstream output_;
-  string sectionName_;
+  std::string sectionName_;
   int layerId_;
   int moduleRing_;
 
@@ -219,7 +222,7 @@ public:
 class ModulesToDTCsVisitor : public ConstGeometryVisitor {
   bool isPositiveCablingSide_;
   std::stringstream output_;
-  string sectionName_;
+  std::string sectionName_;
   int layerId_;
 
 public:
@@ -256,7 +259,7 @@ public:
     //************************************//
 class InnerTrackerModulesToDTCsVisitor : public ConstGeometryVisitor {
   std::stringstream output_;
-  string sectionName_;
+  std::string sectionName_;
   int layerId_;
 
 public:

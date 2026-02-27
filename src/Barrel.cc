@@ -1,5 +1,7 @@
+#include "Property.hh"
+#include "GeometryFactory.hh"
+#include "Layer.hh"
 #include "Barrel.hh"
-#include "MessageLogger.hh"
 #include "SupportStructure.hh"
 
 using material::SupportStructure;

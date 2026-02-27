@@ -1,7 +1,7 @@
 #ifndef DETECTOR_MODULE_H
 #define DETECTOR_MODULE_H
 
-#include <limits.h>
+#include <limits>
 
 #include <boost/ptr_container/ptr_vector.hpp>
 #include <boost/accumulators/accumulators.hpp>
@@ -17,6 +17,7 @@
 #include "MessageLogger.hh"
 #include "Sensor.hh"
 #include "ModuleBase.hh"
+#include "GeometryFactory.hh"
 #include "GeometricModule.hh"
 #include "CoordinateOperations.hh"
 #include "Visitable.hh"

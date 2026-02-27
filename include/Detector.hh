@@ -4,6 +4,9 @@
 #include <vector>
 
 class Tracker;
+class GeometryVisitor;
+class ConstGeometryVisitor;
+class SensorGeometryVisitor;
 
 class Detector : public Visitable {
 private:

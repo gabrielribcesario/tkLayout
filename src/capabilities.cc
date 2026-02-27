@@ -1,4 +1,10 @@
+#include <map>
+#include <vector>
+#include <cmath>
+
 #include "capabilities.hh"
+#include "MessageLogger.hh"
+#include "global_funcs.hh"
 
 
 /**
@@ -16,7 +22,7 @@ void DetIdentifiable::buildDetId(std::map<int, uint32_t> geometryHierarchyIds, s
       uint32_t id = geometryHierarchyIds.at(level);
       int shift = geometryHierarchySizes.at(level);
 
-      if (id <= pow(2, shift) ) {
+      if (id <= std::pow(2, shift) ) {
 	myDetId_ <<= shift;  // Shift by the hierarchy level's number of bits.
 	myDetId_ |= id;      // Add the hierarchy level Id.
       }

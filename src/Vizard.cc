@@ -13,9 +13,7 @@
 #include <boost/filesystem.hpp>
 
 #include "MainConfigHandler.hh"
-
-
-//#include "MaterialTab.hh"
+#include "MaterialBudget.hh"
 
 namespace insur {
   // public

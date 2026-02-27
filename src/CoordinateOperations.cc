@@ -5,7 +5,10 @@
  *      Author: stefano
  */
 
+#include <Math/Vector3Dfwd.h>
 #include "CoordinateOperations.hh"
+
+using ROOT::Math::XYZVector;
 
 namespace CoordinateOperations {
 

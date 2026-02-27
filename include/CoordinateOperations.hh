@@ -9,13 +9,14 @@
 #define CORDINATEOPERATIONS_H
 
 #include <vector>
+#include <set>
+
 #include <Math/Vector3Dfwd.h>
 #include <Math/VectorUtil.h>
 #include <TVector3.h>
+
 #include "Polygon3d.hh"
 #include "global_funcs.hh"
-
-using ROOT::Math::XYZVector;
 
 
 namespace CoordinateOperations {
@@ -41,13 +42,13 @@ namespace CoordinateOperations {
   }
 
 
-  XYZVector computeDistanceVector(const XYZVector& v0, const XYZVector& v1); // minimum distance vector (from the origin) of the segment defined by v0 and v1
+  ROOT::Math::XYZVector computeDistanceVector(const ROOT::Math::XYZVector& v0, const ROOT::Math::XYZVector& v1); // minimum distance vector (from the origin) of the segment defined by v0 and v1
 
-  template<class Polygon> std::vector<XYZVector> computeDistanceVectors(const Polygon& polygon) {
-    std::vector<XYZVector> distanceVectors;
-    XYZVector v0 = polygon.getVertex(0);
+  template<class Polygon> std::vector<ROOT::Math::XYZVector> computeDistanceVectors(const Polygon& polygon) {
+    std::vector<ROOT::Math::XYZVector> distanceVectors;
+    ROOT::Math::XYZVector v0 = polygon.getVertex(0);
     for (int i = 1; i < polygon.getNumSides() + 1; i++) {
-      XYZVector v1 = polygon.getVertex(i % polygon.getNumSides());
+      ROOT::Math::XYZVector v1 = polygon.getVertex(i % polygon.getNumSides());
       v0.SetZ(0.0);
       v1.SetZ(0.0);
       distanceVectors.push_back(computeDistanceVector(v0, v1));
@@ -57,20 +58,20 @@ namespace CoordinateOperations {
   }
 
   template<class Polygon> double computeMinZ(const Polygon& polygon) {
-    return minget(polygon.begin(), polygon.end(), [](const XYZVector& v) { return v.Z(); });
+    return minget(polygon.begin(), polygon.end(), [](const ROOT::Math::XYZVector& v) { return v.Z(); });
   }
 
   template<class Polygon> double computeMaxZ(const Polygon& polygon) {
-    return maxget(polygon.begin(), polygon.end(), [](const XYZVector& v) { return v.Z(); });
+    return maxget(polygon.begin(), polygon.end(), [](const ROOT::Math::XYZVector& v) { return v.Z(); });
   }
 
   template<class Polygon> double computeMinR(const Polygon& polygon) {
     auto distanceVectors = computeDistanceVectors(polygon);
-    return minget(distanceVectors.begin(), distanceVectors.end(), [](const XYZVector& v) { return v.Rho(); });
+    return minget(distanceVectors.begin(), distanceVectors.end(), [](const ROOT::Math::XYZVector& v) { return v.Rho(); });
   }
 
   template<class Polygon> double computeMaxR(const Polygon& polygon) {
-    return maxget(polygon.begin(), polygon.end(), [](const XYZVector& v) { return v.Rho(); });
+    return maxget(polygon.begin(), polygon.end(), [](const ROOT::Math::XYZVector& v) { return v.Rho(); });
   }
 
   template<class Polygon> Polygon* computeTranslatedPolygon(const Polygon& basePolygon, double normalOffset) {
@@ -79,11 +80,11 @@ namespace CoordinateOperations {
     return p;
   }
 
-  template<class Polygon> Polygon* computeResizedPolygon(const Polygon& basePolygon, const XYZVector& axis, double scale) {
+  template<class Polygon> Polygon* computeResizedPolygon(const Polygon& basePolygon, const ROOT::Math::XYZVector& axis, double scale) {
     Polygon* p = new Polygon();
-    const XYZVector& center = basePolygon.getCenter();
-    for (const XYZVector* vtx = basePolygon.begin(); vtx != basePolygon.end(); ++vtx) {
-      XYZVector shift = ROOT::Math::VectorUtil::ProjVector(center - *vtx, axis) * (1. - scale);
+    const ROOT::Math::XYZVector& center = basePolygon.getCenter();
+    for (const ROOT::Math::XYZVector* vtx = basePolygon.begin(); vtx != basePolygon.end(); ++vtx) {
+      ROOT::Math::XYZVector shift = ROOT::Math::VectorUtil::ProjVector(center - *vtx, axis) * (1. - scale);
       *p << (*vtx + shift);
     }
     return p;
@@ -95,10 +96,10 @@ namespace CoordinateOperations {
   template<class Polygon> Polygon* computeMidPolygon(const Polygon& polygon) {
     Polygon* midPoly = new Polygon();
 
-    XYZVector v0 = polygon.getVertex(0);
+    ROOT::Math::XYZVector v0 = polygon.getVertex(0);
     for (int i = 1; i < polygon.getNumSides() + 1; i++) {
-      XYZVector v1 = polygon.getVertex(i % polygon.getNumSides());
-      XYZVector vMid = (v0 + v1) / 2.;
+      ROOT::Math::XYZVector v1 = polygon.getVertex(i % polygon.getNumSides());
+      ROOT::Math::XYZVector vMid = (v0 + v1) / 2.;
       *midPoly << vMid;
       v0 = v1;   
     }

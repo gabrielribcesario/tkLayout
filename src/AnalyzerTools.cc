@@ -1,4 +1,8 @@
-#include <AnalyzerTools.hh>
+#include <TH2D.h>
+#include <string>
+
+#include "AnalyzerTools.hh"
+#include "global_constants.hh"
 
 namespace insur {
 

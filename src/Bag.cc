@@ -1,5 +1,14 @@
-#include "Bag.hh"
+#include <vector>
+#include <map>
+#include <string>
 #include <utility>
+#include <set>
+
+#include <TProfile.h>
+#include <TGraph.h>
+#include <TH2D.h>
+
+#include "Bag.hh"
 
 const double GraphBag::Triggerable   = 0.;
 const int GraphBag::RhoGraph_Pt      = 0x001;
@@ -59,7 +68,7 @@ GraphBag::GraphBag() {
   parameterMeaning_ = "unknown";
 }
 
-GraphBag::GraphBag(string meaning) {
+GraphBag::GraphBag(std::string meaning) {
   parameterMeaning_ = meaning;
 }
 
@@ -134,12 +143,12 @@ TGraph& GraphBag::getGraph(const int& attribute, const int& parameter) {
   return aMap[parameter];
 }
 
-std::map<int, TGraph>& GraphBag::getTaggedGraphs(int attribute, const string& tag) {
+std::map<int, TGraph>& GraphBag::getTaggedGraphs(int attribute, const std::string& tag) {
   tagSet_.insert(tag);
   return taggedGraphMap_[std::make_pair(attribute, tag)];
 }
 
-TGraph& GraphBag::getTaggedGraph(const int& attribute, const string& tag, const int& parameter) {
+TGraph& GraphBag::getTaggedGraph(const int& attribute, const std::string& tag, const int& parameter) {
   auto& aMap = getTaggedGraphs(attribute, tag);
   return aMap[parameter];
 }

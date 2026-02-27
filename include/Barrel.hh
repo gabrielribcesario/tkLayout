@@ -3,8 +3,7 @@
 
 #include <vector>
 #include <string>
-#include <memory>
-#include <limits.h>
+#include <limits>
 
 #include <boost/ptr_container/ptr_vector.hpp>
 
@@ -17,7 +16,7 @@ namespace material {
   class SupportStructure;
 }
 
-class Barrel : public PropertyObject, public Buildable, public Identifiable<string>, Clonable<Barrel>, public Visitable {
+class Barrel : public PropertyObject, public Buildable, public Identifiable<std::string>, Clonable<Barrel>, public Visitable {
 
  private:
   typedef boost::ptr_vector<Layer>                      Container;

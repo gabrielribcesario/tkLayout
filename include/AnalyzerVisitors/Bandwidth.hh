@@ -6,13 +6,13 @@
 #include <vector>
 #include <utility>
 
-#include "TH1.h"
+#include <TH1D.h>
 
-#include "Tracker.hh"
+#include "Sensor.hh"
 #include "SimParms.hh"
-
+#include "GeometryFactory.hh"
+#include "DetectorModule.hh"
 #include "Visitor.hh"
-#include "SummaryTable.hh"
 
 class BandwidthVisitor : public ConstGeometryVisitor {
   TH1D &chanHitDistribution_, &bandwidthDistribution_, &bandwidthDistributionSparsified_;
