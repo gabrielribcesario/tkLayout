@@ -1,3 +1,8 @@
+#include <TH2D.h>
+#include <Math/Vector3D.h>
+
+#include "Polygon3d.hh"
+#include "Module.hh"
 #include "AnalyzerVisitor.hh"
 
 void AnalyzerHelpers::drawModuleOnMap(const Module& m, double val, TH2D& map, TH2D& counter) {

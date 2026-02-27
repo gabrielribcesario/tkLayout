@@ -44,10 +44,11 @@
 #include "Track.hh"
 #include "AnalyzerTools.hh"
 #include "AnalyzerVisitor.hh"
+#include "AnalyzerVisitors/TriggerProcessorBandwidth.hh"
 
 class TProfile;
 class Hit;
-typedef class DetectorModule Module;
+class DetectorModule;
 
 namespace insur {
 

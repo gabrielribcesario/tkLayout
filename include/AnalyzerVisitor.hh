@@ -1,47 +1,12 @@
 #ifndef ANALYZERVISITOR_H
 #define ANALYZERVISITOR_H
 
-#include <string>
-#include <map>
-#include <vector>
-#include <utility>
+#include <TH2D.h>
 
-#include <TH1.h>
-#include <TH2.h>
-#include <TProfile.h>
-#include <TGraph.h>
-#include <TGraphErrors.h>
-
-#include "Tracker.hh"
-#include "Barrel.hh"
-#include "Endcap.hh"
-#include "Layer.hh"
-#include "Disk.hh"
-#include "RodPair.hh"
-#include "Ring.hh"
 #include "Module.hh"
-#include "SimParms.hh"
 #include "PtErrorAdapter.hh"
-#include "MessageLogger.hh"
-
 #include "Visitor.hh"
-
-#include "Bag.hh"
-#include "SummaryTable.hh"
-
-#include "AnalyzerVisitors/TriggerProcessorBandwidth.hh"
-#include "AnalyzerVisitors/IrradiationPower.hh"
-#include "AnalyzerVisitors/Bandwidth.hh"
 #include "AnalyzerVisitors/TriggerDistanceTuningPlots.hh"
-#include "AnalyzerVisitors/TriggerFrequency.hh"
-
-using std::string;
-using std::map;
-using std::vector;
-using std::pair;
-
-
-
 
 namespace AnalyzerHelpers {
 
@@ -59,7 +24,7 @@ class TriggerEfficiencyMapVisitor : public ConstGeometryVisitor {
 public:
   TriggerEfficiencyMapVisitor(TH2D& map, double pt) : myMap_(map), myPt_(pt) { counter_ = (TH2D*)map.Clone(); }
 
-  void visit(const DetectorModule& aModule) {
+  void visit(const Module& aModule) {
     // returns immediately if module is not pt enabled
     if (aModule.sensorLayout() != PT) return;
     double myValue = PtErrorAdapter(aModule).getTriggerProbability(myPt_);
@@ -88,7 +53,7 @@ class PtThresholdMapVisitor : public ConstGeometryVisitor {
 public:
   PtThresholdMapVisitor(TH2D& map, double pt) : myMap_(map), myPt_(pt) { counter_ = (TH2D*)map.Clone(); }
 
-  void visit(const DetectorModule& aModule) {
+  void visit(const Module& aModule) {
     if (aModule.sensorLayout() != PT) return;
     double myValue = PtErrorAdapter(aModule).getPtThreshold(myPt_);
     if (myValue >= 0) AnalyzerHelpers::drawModuleOnMap(aModule, myValue, myMap_, *counter_);
@@ -123,7 +88,7 @@ public:
         counterSpacingAW_ = (TH2D*)suggestedSpacingMapAW.Clone();
   }
 
-  void visit(const DetectorModule& aModule) {
+  void visit(const Module& aModule) {
     if (aModule.sensorLayout() != PT) return;
     double mySuggestedSpacing = moduleOptimalSpacings_[&aModule][5]; // TODO: put this 5 in a configuration of some sort
     double mySuggestedSpacingAW = moduleOptimalSpacings_[&aModule][aModule.triggerWindow()];

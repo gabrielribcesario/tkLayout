@@ -15,6 +15,8 @@
 #include "Hit.hh"
 #include "SimParms.hh"
 #include "AnalyzerVisitors/MaterialBillAnalyzer.hh"
+#include "AnalyzerVisitors/TriggerFrequency.hh"
+#include "AnalyzerVisitors/Bandwidth.hh"
 #include "Units.hh"
 
 #undef MATERIAL_SHADOW
