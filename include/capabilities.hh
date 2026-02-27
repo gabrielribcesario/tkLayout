@@ -1,16 +1,11 @@
 #ifndef CAPABILITIES_H
 #define CAPABILITIES_H
 
-#include <typeinfo>
+#include <cstdint>
 #include <string>
 #include <bitset>
 
-#include "GeometryFactory.hh"
 #include "global_funcs.hh"
-#include "MessageLogger.hh"
-
-using std::string;
-
 
 class Buildable {
 protected:
@@ -55,7 +50,7 @@ public:
   const T& myid() const { return myid_; }
 };
 
-template<class T> string fullid(const T& o) { return string(typeid(T).name()) + "(" + any2str(o.myid()) + ")"; }
+template<class T> std::string fullid(const T& o) { return static_cast<std::string>(typeid(T).name()) + "(" + any2str(o.myid()) + ")"; }
 
 class DetIdentifiable {
 public:
