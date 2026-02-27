@@ -4,21 +4,21 @@
  */
 #include <TH1D.h>
 #include <TH2D.h>
-#include <Analyzer.hh>
-#include "MainConfigHandler.hh"
-#include <Hit.hh>
 #include <TProfile.h>
 #include <TLegend.h>
-#include <Palette.hh>
+#include <TError.h>
+#include <Math/Vector3D.h>
+
+#include "Palette.hh"
+#include "Analyzer.hh"
+#include "MainConfigHandler.hh"
+#include "Hit.hh"
 #include "SimParms.hh"
 #include "AnalyzerVisitors/MaterialBillAnalyzer.hh"
-#include <Units.hh>
-#include "TProfile.h"
-#include "TMath.h"
+#include "Units.hh"
 
 #undef MATERIAL_SHADOW
 
-#include <TError.h>
 Int_t gErrorIgnoreLevel = kError;
 
 namespace insur {

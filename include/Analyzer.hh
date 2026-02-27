@@ -19,40 +19,42 @@
 #include <vector>
 #include <set>
 #include <algorithm>
-#include <ModuleCap.hh>
-#include <InactiveElement.hh>
-#include <InactiveSurfaces.hh>
-#include <MaterialBudget.hh>
+#include <map>
+#include <set>
+
+#include <TH1I.h>
+#include <TH2I.h>
+#include <TH1D.h>
+#include <TH2D.h>
+#include <TRandom3.h>
 #include <TCanvas.h>
 #include <TProfile.h>
 #include <TGraph.h>
 #include <TMultiGraph.h>
 #include <TGraphErrors.h>
+#include <TFile.h>
+#include <TF1.h>
+#include <TAxis.h>
 #include <Math/Vector3D.h>
 
-#include <global_funcs.hh>
-
-#include "TRandom3.h"
-#include "Module.hh"
-#include "AnalyzerVisitor.hh"
+#include "global_funcs.hh"
 #include "Bag.hh"
 #include "SummaryTable.hh"
 #include "TagMaker.hh"
-#include "Hit.hh"
 #include "Track.hh"
+#include "AnalyzerTools.hh"
+#include "AnalyzerVisitor.hh"
 
-#include <TFile.h>
-#include <TProfile.h>
-#include <TF1.h>
-#include <TAxis.h>
-#include <TCanvas.h>
-
-#include <AnalyzerTools.hh>
-
-// Forward declaration
 class TProfile;
+class Hit;
+typedef class DetectorModule Module;
 
 namespace insur {
+
+  class InactiveSurfaces;
+  class InactiveElement;
+  class MaterialBudget;
+  class ModuleCap;
 
   typedef std::map<std::pair<std::string, int>, TH1D*> StubRateHistos;
   typedef std::vector<Module*> ModuleVector;
