@@ -9,13 +9,11 @@
 #include <TGraph.h>
 #include <TH2.h>
 
-using std::string;
-
   class GraphBag {
   public:
     GraphBag();
-    GraphBag(string parameter);
-    const string& getParameterMeaning() const { return parameterMeaning_ ; }
+    GraphBag(std::string parameter);
+    const std::string& getParameterMeaning() const { return parameterMeaning_ ; }
 
     static const double Triggerable;
     static const int RhoGraph_Pt;
@@ -45,9 +43,9 @@ using std::string;
     static const int StandardGraph;
     std::map<int, TGraph>& getGraphs(const int& attribute);
     TGraph& getGraph(const int& attribute, const int& parameter);
-    std::map<int, TGraph>& getTaggedGraphs(int attribute, const string& tag);
-    TGraph& getTaggedGraph(const int& attribute, const string& tag, const int& parameter);
-    const std::set<string>& getTagSet() const { return tagSet_; }
+    std::map<int, TGraph>& getTaggedGraphs(int attribute, const std::string& tag);
+    TGraph& getTaggedGraph(const int& attribute, const std::string& tag, const int& parameter);
+    const std::set<std::string>& getTagSet() const { return tagSet_; }
     const std::set<int> getParameterSet();
     int clearTriggerGraphs();
     int clearStandardGraphs();
@@ -56,8 +54,8 @@ using std::string;
     //static double joinMomenta(double momentum1, double momentum2);
   private:
     std::map<int, std::map<int, TGraph> > graphMap_;
-    std::map<std::pair<int, string>, std::map<int, TGraph> > taggedGraphMap_;
-    std::set<string> tagSet_;
+    std::map<std::pair<int, std::string>, std::map<int, TGraph> > taggedGraphMap_;
+    std::set<std::string> tagSet_;
     std::string parameterMeaning_;
     int clearGraphs(const int& attributeMask);
   };
