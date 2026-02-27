@@ -1,4 +1,9 @@
 #include <set>
+#include <map>
+#include <string>
+
+#include "Property.hh"
+#include "MaterialObject.hh"
 #include "ConversionStation.hh"
 #include "InactiveElement.hh"
 #include "MessageLogger.hh"
@@ -28,7 +33,7 @@ namespace material {
   }
 
 
-  void ConversionStation::routeConvertedElements(MaterialObject& localOutput, MaterialObject& serviceOutput, InactiveElement& inactiveElement) {
+  void ConversionStation::routeConvertedElements(MaterialObject& localOutput, MaterialObject& serviceOutput, insur::InactiveElement& inactiveElement) {
     double multiplier = 0.0;
     std::set<std::string> infoMaterials;
     std::set<std::string> warningMaterials;

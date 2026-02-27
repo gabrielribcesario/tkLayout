@@ -1,14 +1,15 @@
 #ifndef CONVERSIONSTATION_H_
 #define CONVERSIONSTATION_H_
 
+#include <string>
+#include <vector>
+#include <map>
+#include <memory>
+
 #include "Property.hh"
 #include "MaterialObject.hh"
 
-namespace insur {
-  class InactiveElement;
-}
-
-using insur::InactiveElement;
+namespace insur { class InactiveElement; }
 
 namespace material {
   
@@ -36,7 +37,7 @@ namespace material {
     virtual ~ConversionStation() {};
 
     void build();
-    void routeConvertedElements(MaterialObject& localOutput, MaterialObject& serviceOutput, InactiveElement& inactiveElement);
+    void routeConvertedElements(MaterialObject& localOutput, MaterialObject& serviceOutput, insur::InactiveElement& inactiveElement);
     Type stationType() const { return stationType_; }
 
     ReadonlyProperty<std::string, NoDefault> stationName_;
