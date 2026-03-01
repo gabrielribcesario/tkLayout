@@ -239,7 +239,7 @@ inline double eta2theta(double eta) { return 2*atan(exp(-eta)); }
 inline double theta2eta(double theta) { return -log(tan(theta/2)); }
 
 
-// example: double maxZ = maxget(vec.begin(), vec.end(), [](Module* m) { return m->maxZ(); }); // gets maxZ from a vector of modules
+// example: double maxZ = maxget(vec.begin(), vec.end(), [](DetectorModule* m) { return m->maxZ(); }); // gets maxZ from a vector of modules
 template<class I, class UnaryOperation> inline auto maxget(I begin, I end, UnaryOperation op) -> decltype(op(*begin)) {
   auto max = op(*begin++);
   for (auto it = begin; it != end; ++it) max = MAX(max, op(*it));

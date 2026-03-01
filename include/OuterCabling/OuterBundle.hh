@@ -5,7 +5,7 @@
 #include <string>
 
 #include "Property.hh"
-#include "Module.hh"
+#include "DetectorModule.hh"
 #include "OuterCabling/PhiPosition.hh"
 #include "OuterCabling/ServicesChannel.hh"
 
@@ -15,7 +15,7 @@ using insur::OuterCable;
 
 
 class OuterBundle : public PropertyObject, public Buildable, public Identifiable<int> {
-  typedef std::vector<Module*> Container; 
+  typedef std::vector<DetectorModule*> Container; 
 
 public:
   OuterBundle(const int id, const int stereoBundleId, const Category& type, const std::string subDetectorName, const int layerDiskNumber, const PhiPosition& phiPosition, const bool isPositiveCablingSide, const bool isTiltedPart);
@@ -24,7 +24,7 @@ public:
   const Container& modules() const { return modules_; }
   Container& modules() { return modules_; }
   const int numModules() const { return modules_.size(); }
-  void addModule(Module* m) { modules_.push_back(m); }
+  void addModule(DetectorModule* m) { modules_.push_back(m); }
 
   // CABLE THE BUNDLE IS CONNECTED TO.
   const OuterCable* getCable() const {
@@ -53,8 +53,8 @@ public:
 
   void moveMinPhiModuleFromOtherBundle(OuterBundle* otherBundle);
   void moveMaxPhiModuleFromOtherBundle(OuterBundle* otherBundle);
-  const std::vector<Module*>::iterator minPhiModule();
-  const std::vector<Module*>::iterator maxPhiModule(); 
+  const std::vector<DetectorModule*>::iterator minPhiModule();
+  const std::vector<DetectorModule*>::iterator maxPhiModule(); 
 
   // SERVICES CHANNELS INFORMATION
   // VERY IMPORTANT: connection scheme from modules to optical bundles = connection scheme from modules to power cables.

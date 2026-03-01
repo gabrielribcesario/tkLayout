@@ -420,7 +420,7 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, OuterBundle*>& bund
 		   
 	    const auto maxPhiModIt = b.second->maxPhiModule();
 	    if (maxPhiModIt != b.second->modules().end()) { 
-	      Module* maxPhiMod = *maxPhiModIt;
+	      DetectorModule* maxPhiMod = *maxPhiModIt;
 	      maxPhiMod->setBundle(nextBundle);  
 	      nextBundle->moveMaxPhiModuleFromOtherBundle(b.second);
 	    }
@@ -446,7 +446,7 @@ void ModulesToBundlesConnector::staggerModules(std::map<int, OuterBundle*>& bund
 
 	    const auto minPhiModIt = b.second->minPhiModule();
 	    if (minPhiModIt != b.second->modules().end()) {
-	      Module* minPhiMod = *minPhiModIt;
+	      DetectorModule* minPhiMod = *minPhiModIt;
 	      minPhiMod->setBundle(previousBundle);	  
 	      previousBundle->moveMinPhiModuleFromOtherBundle(b.second);
 	    }
@@ -536,7 +536,7 @@ void ModulesToBundlesConnector::connectEndcapModulesToBundlesFanoutBranches(std:
       const int numDiskSurfacesPerDoubleDisk = 4;
 
       // Get all the modules connected to the MFB
-      const std::vector<Module*>& myModules = myBundle->modules();
+      const std::vector<DetectorModule*>& myModules = myBundle->modules();
 
       // IF THE PHI SECTOR IS CROSSING SEVERAL DEES: 
       // WE NEED TO LOOK ON WHICH DEE MODULES ARE ON.
@@ -659,7 +659,7 @@ void ModulesToBundlesConnector::checkEndcapModulesToBundlesFanoutBranchesCabling
       std::set<int> allBranchesIndexes;
 
       // Loop on all the modules connected to the MFB, ancd check their fanout branch index.
-      const std::vector<Module*>& myModules = myBundle->modules();
+      const std::vector<DetectorModule*>& myModules = myBundle->modules();
       for (const auto& module : myModules) {
 	const int endcapFiberFanoutBranchIndex = module->getEndcapFiberFanoutBranch();    
 	if ( endcapFiberFanoutBranchIndex <= 0 

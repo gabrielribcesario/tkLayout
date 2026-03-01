@@ -1,6 +1,13 @@
-#include <ReportIrradiation.hh>
-#include <PlotDrawer.hh>
 #include <TLegend.h>
+
+#include "ReportIrradiation.hh"
+#include "PlotDrawer.hh"
+#include "Tracker.hh"
+#include "Layer.hh"
+#include "Disk.hh"
+#include "Barrel.hh"
+#include "Endcap.hh"
+#include "Units.hh"
 
 void ReportIrradiation::analyze() {
   computeIrradiationPowerConsumption();
@@ -35,7 +42,7 @@ void ReportIrradiation::computeChipPowerConsumptionTable() {
   int iType=1;
   struct ModuleTypeVisitor : public ConstGeometryVisitor {
     std::map<std::string, std::vector<std::string> > typeMap;
-    void visit(const Module& m) {
+    void visit(const DetectorModule& m) {
       if (!typeMap.count(m.moduleType())) {
 	std::vector<std::string>& displayValues = typeMap[m.moduleType()];
 	displayValues.push_back(any2str(m.totalPower(), 0));
@@ -77,7 +84,7 @@ std::string ReportIrradiation::createSensorsIrradiationCsv() {
     void visit(const Layer& l)  { layerId_ = l.myid(); }
     void visit(const RodPair& r)  { isOuterRadiusRod_ = r.isOuterRadiusRod(); }
     void visit(const Disk& d)  { isOuterRadiusRod_ = false; layerId_ = d.myid(); } // no rod here !
-    void visit(const Module& m) {
+    void visit(const DetectorModule& m) {
       output_  << m.myDetId() << ","
 	       << sectionName_ << ","
 	       << layerId_ << ","
@@ -135,7 +142,7 @@ std::map<std::string,TH1F*> ReportIrradiation::createSensorsIrradiationHistogram
     void visit(const Layer& l)  { layerId_ = l.myid(); }
     void visit(const RodPair& r)  { isOuterRadiusRod_ = r.isOuterRadiusRod(); }
     void visit(const Disk& d)  { isOuterRadiusRod_ = false; layerId_ = d.myid(); } // no rod here !
-    void visit(const Module& m) {
+    void visit(const DetectorModule& m) {
       if(sectionName_=="TBPX"){
         hist_map[std::string("tot_mod_fluence_TBPX")]->Fill(m.sensorsIrradiationMean());
         hist_map[std::string("tot_mod_TID_TBPX")]->Fill(m.sensorsDoseMean());
@@ -297,11 +304,11 @@ void ReportIrradiation::visualizeTo(RootWSite& site) {
   std::string tempString;
 
   struct SensorsIrradiationPower {
-    double operator()(const Module& m) { return m.sensorsIrradiationPowerMean(); }  // W
+    double operator()(const DetectorModule& m) { return m.sensorsIrradiationPowerMean(); }  // W
   };
 
   struct TotalPower {
-    double operator()(const Module& m) { return m.sensorsIrradiationPowerMean() + m.totalPower() * Units::mW; }  // W (convert m.totalPower() from mW to W)
+    double operator()(const DetectorModule& m) { return m.sensorsIrradiationPowerMean() + m.totalPower() * Units::mW; }  // W (convert m.totalPower() from mW to W)
   };
 
   PlotDrawer<YZ, SensorsIrradiationPower, Average> yzSensorsPowerDrawer(0, 0);

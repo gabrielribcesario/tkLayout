@@ -1,5 +1,5 @@
-#ifndef RODPAIR_H
-#define RODPAIR_H
+#ifndef RODPAIR_HH
+#define RODPAIR_HH
 
 #include <vector>
 #include <string>
@@ -11,7 +11,8 @@
 
 #include "global_funcs.hh"
 #include "Property.hh"
-#include "Module.hh"
+#include "DetectorModule.hh"
+#include "BarrelModule.hh"
 #include "MessageLogger.hh"
 #include "Visitable.hh"
 
@@ -64,16 +65,16 @@ public:
   {}
 
   void setup() {
-    minZ       .setup([&]() { return minget2(zMinusModules_.begin(), zMinusModules_.end(), &Module::minZ); }); // we want the minZ so we don't bother with scanning the zPlus vector
-    maxZ .setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::maxZ); });
-    minR       .setup([&]() { return minget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::minR); }); // min and maxR can be found by just scanning the zPlus vector, since the rod pair is symmetrical in R
-    maxR       .setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::maxR); });
-    maxModuleThickness.setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::thickness); });
+    minZ       .setup([&]() { return minget2(zMinusModules_.begin(), zMinusModules_.end(), &DetectorModule::minZ); }); // we want the minZ so we don't bother with scanning the zPlus vector
+    maxZ .setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &DetectorModule::maxZ); });
+    minR       .setup([&]() { return minget2(zPlusModules_.begin(), zPlusModules_.end(), &DetectorModule::minR); }); // min and maxR can be found by just scanning the zPlus vector, since the rod pair is symmetrical in R
+    maxR       .setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &DetectorModule::maxR); });
+    maxModuleThickness.setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &DetectorModule::thickness); });
 
-    maxZwithHybrids       .setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::maxZwithHybrids); });
-    minZwithHybrids       .setup([&]() { return minget2(zMinusModules_.begin(), zMinusModules_.end(), &Module::minZwithHybrids); });
-    minRwithHybrids       .setup([&]() { return minget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::minRwithHybrids); });
-    maxRwithHybrids       .setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::maxRwithHybrids); });
+    maxZwithHybrids       .setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &DetectorModule::maxZwithHybrids); });
+    minZwithHybrids       .setup([&]() { return minget2(zMinusModules_.begin(), zMinusModules_.end(), &DetectorModule::minZwithHybrids); });
+    minRwithHybrids       .setup([&]() { return minget2(zPlusModules_.begin(), zPlusModules_.end(), &DetectorModule::minRwithHybrids); });
+    maxRwithHybrids       .setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &DetectorModule::maxRwithHybrids); });
   }
   
   virtual double thickness() const = 0;

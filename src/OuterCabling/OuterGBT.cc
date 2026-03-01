@@ -11,6 +11,6 @@ OuterGBT::OuterGBT(const int GBTId) :
 /*
  *  Connect a Module to the GBT.
  */
-void OuterGBT::addModule(Module* m) { 
+void OuterGBT::addModule(DetectorModule* m) { 
   modules_.push_back(m);
 }

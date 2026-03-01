@@ -5,7 +5,7 @@
 #include <string>
 
 #include "Property.hh"
-#include "Module.hh"
+#include "DetectorModule.hh"
 #include "InnerCabling/inner_cabling_functions.hh"
 
 
@@ -19,7 +19,7 @@ using insur::HvLine;
  * General info on the Power Chain is also provided.
  */
 class PowerChain : public PropertyObject, public Buildable, public Identifiable<int> {
-  typedef std::vector<Module*> Container; 
+  typedef std::vector<DetectorModule*> Container; 
 
 public:
   PowerChain(const int powerChainId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int phiRef, const bool isLongBarrel, const int halfRingIndex, const bool isAtSmallerAbsZDeeInDoubleDisk, const bool isAtSmallerAbsZSideInDee, const bool isTEPXSpecialRing);
@@ -28,7 +28,7 @@ public:
   const Container& modules() const { return modules_; }
   Container& modules() { return modules_; }
   const int numModules() const { return modules_.size(); }
-  void addModule(Module* m);
+  void addModule(DetectorModule* m);
 
   // GBTs CONNECTED TO THE MODULES WHICH ARE IN THE SAME POWER CHAIN
   // NB: This is set a posteriori, once the connections from the modules to the GBTs are made.

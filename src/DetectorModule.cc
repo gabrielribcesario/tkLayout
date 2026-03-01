@@ -1,9 +1,10 @@
 #include "DetectorModule.hh"
 #include "ModuleCap.hh"
+#include "BarrelModule.hh"
+#include "EndcapModule.hh"
 #include "OuterCabling/OuterBundle.hh"
 #include "OuterCabling/OuterCable.hh"
 #include "OuterCabling/OuterDTC.hh"
-
 #include "InnerCabling/PowerChain.hh"
 #include "InnerCabling/HvLine.hh"
 #include "InnerCabling/GBT.hh"

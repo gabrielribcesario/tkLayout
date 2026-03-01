@@ -1,18 +1,17 @@
-#ifndef TRIGGERFREQUENCY_H
-#define TRIGGERFREQUENCY_H
+#ifndef TRIGGERFREQUENCY_HH
+#define TRIGGERFREQUENCY_HH
 
 #include <string>
 #include <map>
 #include <vector>
 #include <utility>
 
-#include <TH1.h>
+#include <TH1D.h>
 
 #include "PtErrorAdapter.hh"
 #include "Tracker.hh"
 #include "SimParms.hh"
-
-#include "Visitor.hh"
+#include "ConstGeometryVisitor.hh"
 #include "SummaryTable.hh"
 
 class TriggerFrequencyVisitor : public ConstGeometryVisitor {

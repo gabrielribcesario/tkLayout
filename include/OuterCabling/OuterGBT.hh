@@ -5,10 +5,10 @@
 #include <string>
 
 #include "Property.hh"
-#include "Module.hh"
+#include "DetectorModule.hh"
 
 class OuterGBT : public PropertyObject, public Buildable, public Identifiable<int> {
-  typedef std::vector<Module*> Container; 
+  typedef std::vector<DetectorModule*> Container; 
 
 public:
   OuterGBT(const int GBTId);
@@ -16,7 +16,7 @@ public:
   // MODULES CONNECTED TO THE GBT
   const Container& modules() const { return modules_; }
   const int numModules() const { return modules_.size(); } 
-  void addModule(Module* m);
+  void addModule(DetectorModule* m);
 
   void setCMSSWId(const int cmsswId) { myGBTCMSSWId_ = cmsswId; }
   const int getCMSSWId() const { return myGBTCMSSWId_; }

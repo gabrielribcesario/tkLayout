@@ -1,14 +1,14 @@
-#ifndef LAYER_H
-#define LAYER_H
+#ifndef LAYER_HH
+#define LAYER_HH
 
 #include <vector>
 #include <string>
 #include <memory>
-#include <limits.h>
+#include <limits>
 
 #include "global_funcs.hh"
 #include "Property.hh"
-#include "Module.hh"
+#include "DetectorModule.hh"
 #include "RodPair.hh"
 #include "Ring.hh"
 #include "Visitable.hh"

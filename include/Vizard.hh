@@ -55,14 +55,13 @@
 
 
 #include <InactiveSurfaces.hh>
-#include "Module.hh"
+#include "DetectorModule.hh"
 #include <RootWeb.hh>
 #include <vector>
 #include <set>
 #include <Palette.hh>
 
 #include <PlotDrawer.hh>
-#include <AnalyzerVisitors/GeometricInfo.hh>
 #include "VizardTools.hh"
 
 #include <boost/json.hpp>
@@ -187,14 +186,14 @@ namespace insur {
     bool localAxesLabels_ = false;
     int detailedModules(std::vector<Layer*>* layers,
                         TGeoVolume* v, TGeoCombiTrans* t, TGeoVolumeAssembly* a, int counter);
-    TGeoCombiTrans* modulePlacement(Module* m, TGeoVolume* v);
+    TGeoCombiTrans* modulePlacement(DetectorModule* m, TGeoVolume* v);
     double averageHistogramValues(TH1D& histo, double cutoff);
     double averageHistogramValues(TH1D& histo, double cutoffStart, double cutoffEnd);
 
     void createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, std::unique_ptr<TCanvas> &YZCanvas, std::unique_ptr<TCanvas> &XYCanvas, std::unique_ptr<TCanvas> &XYCanvasEC);
     void createSummaryCanvasNicer(Tracker& tracker, std::unique_ptr<TCanvas> &YZCanvas, std::unique_ptr<TCanvas> &YZCanvasBarrel, std::unique_ptr<TCanvas> &XYCanvas, std::vector<std::unique_ptr<TCanvas> > &XYCanvasEC);
-    void drawAxesAndNameXY(const Module* aModule, double yScale, bool endcap);
-    void drawAxesAndNameRZ(const Module* aModule, double yScale);
+    void drawAxesAndNameXY(const DetectorModule* aModule, double yScale, bool endcap);
+    void drawAxesAndNameRZ(const DetectorModule* aModule, double yScale);
     double getCanvasScaleY(const TCanvas& c);
     void drawArrowDot(double x, double y, double symbolSize, int color);
     void drawArrowCross(double x, double y,const TVector3& locX, const TVector3& locY, double symbolSize, int color);
@@ -341,7 +340,7 @@ namespace insur {
 				     const double z1, const double z2, const double r1, const double r2, const double rl, const double il,
 				     std::map<std::string, int>& subdetectorColors, const std::vector<int>& allColors, int& colorIndex,
 				     const bool isModule, const int serviceId = 0, const double serviceLength = 0., 
-				     const Module* detectorModule = nullptr, const bool printModulesCsv = false);
+				     const DetectorModule* detectorModule = nullptr, const bool printModulesCsv = false);
     void plotVolumeBox(const std::string subdetectorName, 
 		       std::map<std::string, int>& subdetectorColors, const std::vector<int>& allColors, int& colorIndex,
 		       const bool isEmpty, 

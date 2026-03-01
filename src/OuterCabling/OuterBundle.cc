@@ -64,16 +64,16 @@ void OuterBundle::moveMaxPhiModuleFromOtherBundle(OuterBundle* otherBundle) {
 }
 
 
-const std::vector<Module*>::iterator OuterBundle::minPhiModule() {
-  const auto modIt = std::min_element(modules_.begin(), modules_.end(), [](Module* a, Module* b) {
+const std::vector<DetectorModule*>::iterator OuterBundle::minPhiModule() {
+  const auto modIt = std::min_element(modules_.begin(), modules_.end(), [](DetectorModule* a, DetectorModule* b) {
 	return (femodRounded(a->center().Phi(), 2. * M_PI) <= femodRounded(b->center().Phi(), 2. * M_PI));
       });
   return modIt;
 }
 
 
-const std::vector<Module*>::iterator OuterBundle::maxPhiModule() {
-  const auto modIt = std::max_element(modules_.begin(), modules_.end(), [](Module* a, Module* b) {
+const std::vector<DetectorModule*>::iterator OuterBundle::maxPhiModule() {
+  const auto modIt = std::max_element(modules_.begin(), modules_.end(), [](DetectorModule* a, DetectorModule* b) {
       return (femodRounded(a->center().Phi(), 2. * M_PI) <= femodRounded(b->center().Phi(), 2. * M_PI));
     });
   return modIt;

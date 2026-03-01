@@ -40,7 +40,7 @@ template<typename T> int getPointOctant(const T& x, const T& y, const T& z) {
 
 typedef ROOT::Math::DisplacementVector2D<ROOT::Math::Cartesian2D<double>,ROOT::Math::DefaultCoordinateSystemTag> XYVector; // CUIDADO The version of ROOT tkLayout is linked with misses this typedef
 
-std::set<int> getModuleOctants(const Module* mod);
+std::set<int> getModuleOctants(const DetectorModule* mod);
 
 
 class ParticleGenerator {
@@ -301,7 +301,7 @@ class TrackShooter {
   std::ostream* output_;
   const char *FS, *LS;
 
-  std::vector<Module*> allMods_;
+  std::vector<DetectorModule*> allMods_;
   typedef std::list<BarrelModule*> BarrelModules;   // accessed sequentially. last step in hit localization
   typedef std::list<EndcapModule*> EndcapModules;
   typedef std::vector<BarrelModules> BarrelOctants; // these vectors are accessed randomly when the octant of the hit is known (function of the radius/z discovered in the previous step)
@@ -336,7 +336,7 @@ public:
   TrackShooter() : trackerMaxRho_(std::numeric_limits<double>::max()), barrelMinZ_(0.), barrelMaxZ_(0.) { setDefaultParameters(); }
   void setOutput(std::ostream& output, const char* fieldSeparator = "\t", const char* lineSeparator = "\n", bool synced = false);
   void setTrackerBoundaries(double trackerMaxRho, double barrelMinZ, double barrelMaxZ);  // if not set the tracker is considered infinite in the rho direction and no particle can escape without ever curving back
-  void addModule(Module* module);
+  void addModule(DetectorModule* module);
   void shootTracks(long int numEvents, long int numTracksPerEvent, int seed);
   void shootTracks(const po::variables_map& varmap, int seed);
   void exportGeometryData();

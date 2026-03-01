@@ -1,5 +1,5 @@
-#ifndef TRACKER_H
-#define TRACKER_H
+#ifndef TRACKER_HH
+#define TRACKER_HH
 
 #include <vector>
 #include <string>
@@ -16,7 +16,9 @@
 #include "Barrel.hh"
 #include "Endcap.hh"
 #include "SupportStructure.hh"
-#include "Visitor.hh"
+#include "GeometryVisitor.hh"
+#include "ConstGeometryVisitor.hh"
+#include "SensorGeometryVisitor.hh"
 #include "Visitable.hh"
 #include "OuterCabling/OuterCablingMap.hh"
 #include "InnerCabling/InnerCablingMap.hh"
@@ -31,11 +33,11 @@ using material::SupportStructure;
 class Tracker : public PropertyObject, public Buildable, public Identifiable<string>, Clonable<Tracker>, public Visitable {
   class ModuleSetVisitor : public GeometryVisitor {
   public:
-    typedef set<Module*> Modules;
+    typedef set<DetectorModule*> Modules;
   private:
     Modules modules_;
   public:
-    void visit(Module& m) override { modules_.insert(&m); }
+    void visit(DetectorModule& m) override { modules_.insert(&m); }
     Modules& modules() { return modules_; }
     const Modules& modules() const { return modules_; }
     Modules::iterator begin() { return modules_.begin(); }

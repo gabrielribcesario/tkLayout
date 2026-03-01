@@ -587,7 +587,7 @@ void OuterCablingMap::computeCMSSWIds(std::map<const std::string, std::unique_pt
     for (const auto& myCable : myCables){
        const std::vector<OuterBundle*>& myBundles = myCable->bundles();
        for (const auto& myBundle : myBundles){
-         const std::vector<Module*> & myModules = myBundle->modules();
+         const std::vector<DetectorModule*> & myModules = myBundle->modules();
          for (const auto& myModule : myModules){
              detIds.push_back(myModule->myDetId());
          }
@@ -604,7 +604,7 @@ void OuterCablingMap::computeCMSSWIds(std::map<const std::string, std::unique_pt
     for (const auto& myCable : myCables){
        const std::vector<OuterBundle*>& myBundles = myCable->bundles();
        for (const auto& myBundle : myBundles){
-         const std::vector<Module*> & myModules = myBundle->modules();
+         const std::vector<DetectorModule*> & myModules = myBundle->modules();
          for (const auto& myModule : myModules){
             OuterGBT* myGBT = myModule->getOuterGBT();
             myGBT->setCMSSWId(detIdToGBT[myModule->myDetId()]);

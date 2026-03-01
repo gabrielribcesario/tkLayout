@@ -1,24 +1,24 @@
-#ifndef TRIGGERDISTANCETUNINGPLOTS_H
-#define TRIGGERDISTANCETUNINGPLOTS_H
+#ifndef TRIGGERDISTANCETUNINGPLOTS_HH
+#define TRIGGERDISTANCETUNINGPLOTS_HH
 
 #include <string>
 #include <map>
 #include <vector>
 #include <utility>
 
-#include "TH1.h"
-#include "TGraphErrors.h"
+#include <TH1D.h>
+#include <TProfile.h>
+#include <TGraphErrors.h>
 
-#include "Tracker.hh"
-#include "SimParms.hh"
-#include "PtErrorAdapter.hh"
-#include "Visitor.hh"
 #include "Bag.hh"
-#include "SummaryTable.hh"
-
+#include "ConstGeometryVisitor.hh"
+#include "PtErrorAdapter.hh"
+#include "DetectorModule.hh"
+#include "BarrelModule.hh"
+#include "EndcapModule.hh"
+#include "MaterialProperties.hh"
 
 typedef std::map<const DetectorModule*, std::map<int, double> > ModuleOptimalSpacings;
-
 
 class TriggerDistanceTuningPlotsVisitor : public ConstGeometryVisitor {
   typedef std::vector<const DetectorModule*> ModuleVector;
@@ -378,6 +378,5 @@ public:
     }
   }
 };
-
 
 #endif

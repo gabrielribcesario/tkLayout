@@ -1,17 +1,20 @@
-#ifndef IRRADIATIONPOWER_H
-#define IRRADIATIONPOWER_H
+#ifndef IRRADIATIONPOWERVISITOR_HH
+#define IRRADIATIONPOWERVISITOR_HH
 
 #include <string>
 #include <map>
 #include <vector>
 #include <utility>
 
-#include "global_constants.hh"
-#include "Units.hh"
-#include "Tracker.hh"
-#include "SimParms.hh"
-#include "Visitor.hh"
+#include "GeometryVisitor.hh"
 #include "SummaryTable.hh"
+
+class IrradiationMapsManager;
+class SimParms;
+class Barrel;
+class RodPair;
+class Endcap;
+class DetectorModule;
 
 typedef std::tuple<bool, bool, std::string, int, int> ModuleRef;
 // Used to identify an irradiated module : all info which matters in that respect.

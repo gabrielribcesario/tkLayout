@@ -42,11 +42,11 @@
 #include "SummaryTable.hh"
 #include "TagMaker.hh"
 #include "Track.hh"
+#include "MaterialProperties.hh"
 #include "AnalyzerTools.hh"
 #include "AnalyzerVisitor.hh"
 #include "AnalyzerVisitors/TriggerProcessorBandwidth.hh"
 
-class TProfile;
 class Hit;
 class DetectorModule;
 
@@ -58,7 +58,7 @@ namespace insur {
   class ModuleCap;
 
   typedef std::map<std::pair<std::string, int>, TH1D*> StubRateHistos;
-  typedef std::vector<Module*> ModuleVector;
+  typedef std::vector<DetectorModule*> ModuleVector;
   typedef std::vector<Layer*> LayerVector;
   typedef TriggerProcessorBandwidthVisitor::ModuleConnectionMap ModuleConnectionMap;
   typedef TriggerProcessorBandwidthVisitor::TriggerSectorMap TriggerSectorMap;
@@ -280,7 +280,7 @@ namespace insur {
     std::map<std::string, SummaryTable>& getTriggerDataBandwidthSummaries() { return triggerDataBandwidthSummaries_; }
     
     double getTriggerPetalCrossoverR() const { return triggerPetalCrossoverR_; }
-    const std::pair<Circle, Circle>& getSampleTriggerPetal() const { return sampleTriggerPetal_; }
+    const std::pair<AnalyzerHelpers::Circle, AnalyzerHelpers::Circle>& getSampleTriggerPetal() const { return sampleTriggerPetal_; }
 
     std::map<std::string, SummaryTable>& getStripOccupancySummaries() { return stripOccupancySummaries_; }
     std::map<std::string, SummaryTable>& getHitOccupancySummaries() { return hitOccupancySummaries_; }
@@ -384,7 +384,7 @@ namespace insur {
     SummaryTable processorInboundStubPerEventSummary_;
 
     double triggerPetalCrossoverR_;
-    std::pair<Circle, Circle> sampleTriggerPetal_;
+    std::pair<AnalyzerHelpers::Circle, AnalyzerHelpers::Circle> sampleTriggerPetal_;
 
     ModuleConnectionMap moduleConnections_;
     TriggerSectorMap triggerSectorMap_;
@@ -483,7 +483,7 @@ namespace insur {
     int findCellIndexEta(double eta);
     int createResetCounters(Tracker& tracker, std::map <std::string, int> &modTypes);
     std::pair <XYZVector, double > shootDirection(double minEta, double maxEta);
-    std::vector<std::pair<Module*, HitType>> trackHit(const XYZVector& origin, const XYZVector& direction, Tracker::Modules& properModules);
+    std::vector<std::pair<DetectorModule*, HitType>> trackHit(const XYZVector& origin, const XYZVector& direction, Tracker::Modules& properModules);
     void resetTypeCounter(std::map<std::string, int> &modTypes);
     double diffclock(clock_t clock1, clock_t clock2);
     Color_t colorPicker(std::string);
@@ -493,12 +493,12 @@ namespace insur {
     int materialTracksUsed;
     void fillAvailableSpacing(Tracker& tracker, std::vector<double>& spacingOptions);
 
-    bool isModuleInEtaSector(const Tracker& tracker, const Module* module, int etaSector) const;
-    bool isModuleInPhiSector(const Tracker& tracker, const Module* module, int phiSector) const;
+    bool isModuleInEtaSector(const Tracker& tracker, const DetectorModule* module, int etaSector) const;
+    bool isModuleInPhiSector(const Tracker& tracker, const DetectorModule* module, int phiSector) const;
 
     
     const std::pair<int, int> computeCoveragePerLayer(const std::pair<XYZVector, double>& aLine, 
-						      const std::vector<std::pair<Module*, HitType>>& hitModules, 
+						      const std::vector<std::pair<DetectorModule*, HitType>>& hitModules, 
 						      const LayerNameVisitor& layerNames, 
 						      const bool isPixelTracker, 
 						      const double maxEta);

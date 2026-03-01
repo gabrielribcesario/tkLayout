@@ -8,7 +8,7 @@
 #include "Polygon3d.hh"
 #include "Property.hh"
 #include "CoordinateOperations.hh"
-#include "Visitor.hh"
+#include "SensorGeometryVisitor.hh"
 
 
 enum ModuleSubdetector { BARREL = 1, ENDCAP = 2 };

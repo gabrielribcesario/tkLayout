@@ -4,14 +4,16 @@
 #include <string>
 #include <sstream>
 
-#include "Visitor.hh"
-#include "Module.hh"
+#include "ConstGeometryVisitor.hh"
+#include "DetectorModule.hh"
+#include "BarrelModule.hh"
+#include "EndcapModule.hh"
 
 class TagMaker : public ConstGeometryVisitor {
 public:
   std::string sensorTag, sensorGeoTag, posTag;
 
-  TagMaker(const Module& m) { m.accept(*this); }
+  TagMaker(const DetectorModule& m) { m.accept(*this); }
 
   void visit(const BarrelModule& m) {
     sensorTag = makeSensorTag(m);

@@ -29,7 +29,7 @@ PowerChain::PowerChain(const int powerChainId, const bool isPositiveZEnd, const 
 /*
  *  Assign a module to the power chain.
  */
-void PowerChain::addModule(Module* m) { 
+void PowerChain::addModule(DetectorModule* m) { 
   modules_.push_back(m);
   hvLine_->addModule(m);
   m->setHvLine(hvLine_.get());

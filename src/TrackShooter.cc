@@ -1,7 +1,7 @@
 #include <TrackShooter.hh>
 
 
-std::set<int> getModuleOctants(const Module* mod) {
+std::set<int> getModuleOctants(const DetectorModule* mod) {
   std::set<int> octants;
   octants.insert(getPointOctant(mod->getCorner(0).X(), mod->getCorner(0).Y(), mod->getCorner(0).Z())); 
   octants.insert(getPointOctant(mod->getCorner(1).X(), mod->getCorner(1).Y(), mod->getCorner(1).Z())); 
@@ -129,7 +129,7 @@ void TrackShooter::setTrackerBoundaries(double trackerMaxRho, double barrelMinZ,
   barrelMaxZ_ = barrelMaxZ;
 }  
 
-void TrackShooter::addModule(Module* module) { // also locks modules geometry so that only cached values for geometry properties are returned from now on
+void TrackShooter::addModule(DetectorModule* module) { // also locks modules geometry so that only cached values for geometry properties are returned from now on
   BarrelModule* bmod; EndcapModule* emod;
   module->lockGeometry();
   allMods_.push_back(module);
@@ -422,8 +422,8 @@ void TrackShooter::exportGeometryData() {
   TTree* tree = new TTree("geomdata", "Geometry data");
   tree->Branch("mdata", &mdata, "x/D:y:z:rho:phi:widthlo:widthhi:height:stereo:pitchlo:pitchhi:striplen:yres:inefftype/B:subdetectorName:refz:refrho:refphi:type"); 
 
-  for (std::vector<Module*>::const_iterator it = allMods_.begin(); it != allMods_.end(); ++it) {
-    Module* mod = (*it);
+  for (std::vector<DetectorModule*>::const_iterator it = allMods_.begin(); it != allMods_.end(); ++it) {
+    DetectorModule* mod = (*it);
     PosRef posref = mod->getPositionalReference();
     XYZVector center = mod->getMeanPoint();
     mdata = (ModuleData){ center.X(), center.Y(), center.Z(),
@@ -645,8 +645,8 @@ void TrackShooter::shootTracks() {
     }     
 #ifdef FAKE_HITS
     // NOW BROKEN! ENABLING THEM IS USELESS!!
-    for (std::vector<Module*>::iterator mit = allMods_.begin(); mit != allMods_.end(); ++mit) {
-      Module* mod = (*mit);
+    for (std::vector<DetectorModule*>::iterator mit = allMods_.begin(); mit != allMods_.end(); ++mit) {
+      DetectorModule* mod = (*mit);
       // loop over all the modules again
       // fake hits
       Polygon3d<4> poly;

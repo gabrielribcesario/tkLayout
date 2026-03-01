@@ -17,7 +17,7 @@
 #include <TCanvas.h>
 
 #include <Palette.hh>
-#include <Module.hh>
+#include "DetectorModule.hh"
 
 
 
@@ -78,16 +78,16 @@ public:
 // ==============================================================================================
 
 
-template<class RetType, RetType (Module::*ModuleMethod)() const>
+template<class RetType, RetType (DetectorModule::*ModuleMethod)() const>
 struct Method {
-  double operator()(const Module& m) const { return (double)(m.*ModuleMethod)(); }
+  double operator()(const DetectorModule& m) const { return (double)(m.*ModuleMethod)(); }
 };
 
 
 
 struct TypeAutoColor { // Auto-assign colors
   std::set<std::string> colorSet_;
-  double operator()(const Module& m) {
+  double operator()(const DetectorModule& m) {
     std::pair<std::set<std::string>::iterator, bool> it = colorSet_.insert(m.moduleType());
     return Palette::color(std::distance(colorSet_.begin(), it.first)+1);
   }
@@ -95,53 +95,53 @@ struct TypeAutoColor { // Auto-assign colors
 
 
 struct Type { // Module-maintained color
-  double operator()(const Module& m) {
+  double operator()(const DetectorModule& m) {
     return Palette::color(m.plotColor());
   }
 };
 
 // OT CABLING
 struct TypeFanoutBranchTransparentColor { // Module-maintained Bundle fanout branch color
-  double operator()(const Module& m) {
+  double operator()(const DetectorModule& m) {
     const bool isTransparent = ((m.getEndcapFiberFanoutBranch() % 2) == 1);
     return Palette::color(m.bundlePlotColor(), isTransparent);
   }
 };
 
 struct TypeBundleColor { // Module-maintained Bundle color
-  double operator()(const Module& m) {
+  double operator()(const DetectorModule& m) {
     return Palette::color(m.bundlePlotColor());
   }
 };
 
 struct TypeBundleTransparentColor { // Module-maintained Bundle color
-  double operator()(const Module& m) {
+  double operator()(const DetectorModule& m) {
     bool isTransparent = (m.isPositiveCablingSide() < 0);
     return Palette::color(m.bundlePlotColor(), isTransparent);
   }
 };
 
 struct TypeDTCColor { // Module-maintained DTC color
-  double operator()(const Module& m) {
+  double operator()(const DetectorModule& m) {
     return Palette::colorDTC(m.dtcPlotColor());
   }
 };
 
 struct TypeDTCTransparentColor { // Module-maintained DTC color
-  double operator()(const Module& m) {
+  double operator()(const DetectorModule& m) {
     bool isTransparent = (m.isPositiveCablingSide() < 0);
     return Palette::colorDTC(m.dtcPlotColor(), isTransparent);
   }
 };
 
 struct TypeOpticalChannelColor { // Module-maintained channel color
-  double operator()(const Module& m) {
+  double operator()(const DetectorModule& m) {
     return Palette::colorChannel(m.opticalChannelSectionPlotColor());
   }
 };
 
 struct TypePowerChannelColor { // Module-maintained channel color
-  double operator()(const Module& m) {
+  double operator()(const DetectorModule& m) {
     bool isTransparentActivated = true;
     return Palette::colorChannel(m.powerChannelSectionPlotColor(), isTransparentActivated);
   }
@@ -149,40 +149,40 @@ struct TypePowerChannelColor { // Module-maintained channel color
 
 // IT CABLING
 struct TypePowerChainColor { // Module-maintained PowerChain color
-  double operator()(const Module& m) {
+  double operator()(const DetectorModule& m) {
     return Palette::colorScrabble(m.powerChainPlotColor());
   }
 };
 
 struct TypePowerChainTransparentColor { // Module-maintained PowerChain color
-  double operator()(const Module& m) {
+  double operator()(const DetectorModule& m) {
     bool isTransparent = (!m.isPositiveXSide());
     return Palette::colorScrabble(m.powerChainPlotColor(), isTransparent);
   }
 };
 
 struct TypeGBTColor { // Module-maintained GBT color
-  double operator()(const Module& m) {
+  double operator()(const DetectorModule& m) {
     return Palette::colorScrabble(m.gbtPlotColor());
   }
 };
 
 struct TypeGBTTransparentColor { // Module-maintained GBT color
-  double operator()(const Module& m) {
+  double operator()(const DetectorModule& m) {
     bool isTransparent = (!m.isPositiveXSide());
     return Palette::colorScrabble(m.gbtPlotColor(), isTransparent);
   }
 };
 
 struct TypeInnerBundleTransparentColor { // Module-maintained InnerBundle color
-  double operator()(const Module& m) {
+  double operator()(const DetectorModule& m) {
     bool isTransparent = (!m.isPositiveXSide());
     return Palette::colorScrabble(m.innerBundlePlotColor(), isTransparent);
   }
 };
 
 struct TypeInnerDTCTransparentColor { // Module-maintained InnerDTC color
-  double operator()(const Module& m) {
+  double operator()(const DetectorModule& m) {
     bool isTransparent = (m.isPositiveZEnd() < 0 || !m.isPositiveXSide());
     return Palette::colorScrabble(m.innerDTCPlotColor(), isTransparent);
   }
@@ -190,7 +190,7 @@ struct TypeInnerDTCTransparentColor { // Module-maintained InnerDTC color
 
 
 struct CoordZ {
-  double operator()(const Module& m) { return m.center().Z(); }
+  double operator()(const DetectorModule& m) { return m.center().Z(); }
 };
 
 
@@ -284,12 +284,12 @@ g;
 
 template<const int SubdetType>
 struct CheckType {
-  bool operator()(const Module& m) const { return m.subdet() & SubdetType; }
+  bool operator()(const DetectorModule& m) const { return m.subdet() & SubdetType; }
 };
 
 template<const int PhiIndex>
 struct CheckPhiIndex {
-  bool operator()(const Module& m) const { return m.posRef().phi == PhiIndex; }
+  bool operator()(const DetectorModule& m) const { return m.posRef().phi == PhiIndex; }
 };
 
 // ===============================================================================================
@@ -308,11 +308,11 @@ struct Rounder {
 struct XY : public std::pair<int, int>, private Rounder {
   const bool valid;
   // XY coordinates of the centre of module m.
- XY(const Module& m) : std::pair<int, int>(round(m.center().X()), round(m.center().Y())), valid(m.center().Z() >= 0) {}
+ XY(const DetectorModule& m) : std::pair<int, int>(round(m.center().X()), round(m.center().Y())), valid(m.center().Z() >= 0) {}
   // XY coordinates of vector v.
  XY(const XYZVector& v) : std::pair<int, int>(round(v.X()), round(v.Y())), valid(v.Z() >= 0) {}
   // XY coordinates of vector v, in the (XY) plane passing by the center of module m.
- XY(const XYZVector& v, const Module& m) : XY(v) {}
+ XY(const XYZVector& v, const DetectorModule& m) : XY(v) {}
   // bool operator<(const XY& other) const { return (x() < other.x()) || (x() == other.x() && y() < other.y()); }
   int x() const { return this->first; }
   int y() const { return this->second; }
@@ -322,11 +322,11 @@ struct XY : public std::pair<int, int>, private Rounder {
 struct XYRotateY180 : public std::pair<int, int>, private Rounder {
   const bool valid;
   // XY coordinates of the centre of module m.
- XYRotateY180(const Module& m) : std::pair<int, int>(round(-m.center().X()), round(m.center().Y())), valid(m.center().Z() >= 0) {}
+ XYRotateY180(const DetectorModule& m) : std::pair<int, int>(round(-m.center().X()), round(m.center().Y())), valid(m.center().Z() >= 0) {}
   // XY coordinates of vector v.
  XYRotateY180(const XYZVector& v) : std::pair<int, int>(round(-v.X()), round(v.Y())), valid(v.Z() >= 0) {}
   // XY coordinates of vector v, in the (XY) plane passing by the center of module m.
- XYRotateY180(const XYZVector& v, const Module& m) : XYRotateY180(v) {}
+ XYRotateY180(const XYZVector& v, const DetectorModule& m) : XYRotateY180(v) {}
   int x() const { return this->first; }
   int y() const { return this->second; }
 };
@@ -335,11 +335,11 @@ struct XYRotateY180 : public std::pair<int, int>, private Rounder {
 struct XYNeg : public std::pair<int, int>, private Rounder {
   const bool valid;
   // XY coordinates of the centre of module m.
- XYNeg(const Module& m) : std::pair<int, int>(round(m.center().X()), round(m.center().Y())), valid(m.center().Z() <= 0) {}
+ XYNeg(const DetectorModule& m) : std::pair<int, int>(round(m.center().X()), round(m.center().Y())), valid(m.center().Z() <= 0) {}
   // XY coordinates of vector v.
  XYNeg(const XYZVector& v) : std::pair<int, int>(round(v.X()), round(v.Y())), valid(v.Z() <= 0) {}
   // XY coordinates of vector v, in the (XY) plane passing by the center of module m.
- XYNeg(const XYZVector& v, const Module& m) : XYNeg(v) {}
+ XYNeg(const XYZVector& v, const DetectorModule& m) : XYNeg(v) {}
   int x() const { return this->first; }
   int y() const { return this->second; }
 };
@@ -348,11 +348,11 @@ struct XYNeg : public std::pair<int, int>, private Rounder {
 struct XYNegRotateY180 : public std::pair<int, int>, private Rounder {
   const bool valid;
   // XY coordinates of the centre of module m.
- XYNegRotateY180(const Module& m) : std::pair<int, int>(round(-m.center().X()), round(m.center().Y())), valid(m.center().Z() <= 0) {}
+ XYNegRotateY180(const DetectorModule& m) : std::pair<int, int>(round(-m.center().X()), round(m.center().Y())), valid(m.center().Z() <= 0) {}
   // XY coordinates of vector v.
  XYNegRotateY180(const XYZVector& v) : std::pair<int, int>(round(-v.X()), round(v.Y())), valid(v.Z() <= 0) {}
   // XY coordinates of vector v, in the (XY) plane passing by the center of module m.
- XYNegRotateY180(const XYZVector& v, const Module& m) : XYNegRotateY180(v) {}
+ XYNegRotateY180(const XYZVector& v, const DetectorModule& m) : XYNegRotateY180(v) {}
   int x() const { return this->first; }
   int y() const { return this->second; }
 };
@@ -360,11 +360,11 @@ struct XYNegRotateY180 : public std::pair<int, int>, private Rounder {
 struct YZ : public std::pair<int, int>, private Rounder {
   const bool valid;
   // RZ coordinates of the centre of module m, in the plane (RZ) defined by ((Z axis), moduleCenter).
- YZ(const Module& m) : std::pair<int,int>(round(m.center().Z()), round(m.center().Rho())), valid(m.center().Z() >= 0) {}
+ YZ(const DetectorModule& m) : std::pair<int,int>(round(m.center().Z()), round(m.center().Rho())), valid(m.center().Z() >= 0) {}
   // RZ coordinates of vector v, in the plane (RZ) defined by ((Z axis), v).
  YZ(const XYZVector& v) : std::pair<int, int>(round(v.Z()), round(v.Rho())), valid(v.Z() >= 0) {}
   // RZ coordinates of vector v, in the plane (RZ) defined by ((Z axis), moduleCenter).
- YZ(const XYZVector& v, const Module& m) : valid(v.Z() >= 0) {
+ YZ(const XYZVector& v, const DetectorModule& m) : valid(v.Z() >= 0) {
     this->first = round(v.Z());
 
     // This calculates the projection of vector v into plane ((Z axis), moduleCenter).
@@ -385,19 +385,19 @@ struct YZ : public std::pair<int, int>, private Rounder {
 
 struct YZFull : public YZ {
   const bool valid;
- YZFull(const Module& m) : YZ(m), valid(true) {}
+ YZFull(const DetectorModule& m) : YZ(m), valid(true) {}
  YZFull(const XYZVector& v) : YZ(v), valid(true) {}
- YZFull(const XYZVector& v, const Module& m) : YZ(v, m), valid(true) {}
+ YZFull(const XYZVector& v, const DetectorModule& m) : YZ(v, m), valid(true) {}
 };
 
 struct ZPhi : public std::pair<double, double>, private Rounder {
   const bool valid;
   // ZPhi coordinates of the centre of module m.
-  ZPhi(const Module& m) : std::pair<double, double>(m.center().Z() * Rounder::mmFraction, (femod(m.center().Phi() + M_PI/2., 2.*M_PI) - M_PI/2.) * Rounder::mmFraction), valid(true) {}
+  ZPhi(const DetectorModule& m) : std::pair<double, double>(m.center().Z() * Rounder::mmFraction, (femod(m.center().Phi() + M_PI/2., 2.*M_PI) - M_PI/2.) * Rounder::mmFraction), valid(true) {}
   // ZPhi coordinates of vector v.
   ZPhi(const XYZVector& v) : std::pair<double, double>(v.Z()* Rounder::mmFraction, (femod(v.Phi() + M_PI/2., 2.*M_PI) - M_PI/2.) * Rounder::mmFraction), valid(true) {}
   // ZPhi coordinates of vector v, in the (ZPhi) plane passing by the center of module m.
-  ZPhi(const XYZVector& v, const Module& m) : valid(true) {
+  ZPhi(const XYZVector& v, const DetectorModule& m) : valid(true) {
     this->first = v.Z() * Rounder::mmFraction;
 
     const double centerPhi = femod(m.center().Phi() + M_PI/2., 2.*M_PI) - M_PI/2.;
@@ -425,7 +425,7 @@ public:
   CoordTypeX minx() const { return double(minx_)/Rounder::mmFraction; }
   CoordTypeY maxy() const { return double(maxy_)/Rounder::mmFraction; }
   CoordTypeY miny() const { return double(miny_)/Rounder::mmFraction; }
-  TPolyLine* operator()(const Module& m) {
+  TPolyLine* operator()(const DetectorModule& m) {
     if (!isContour) {
       std::set<CoordType> xy; // duplicate detection
       double x[] = {0., 0., 0., 0., 0.}, y[] = {0., 0., 0., 0., 0.};
@@ -556,7 +556,7 @@ struct HistogramFrameStyle {
 /// Usage:
 /// 1) Construct a PlotDrawer object: PlotDrawer<CoordType, ValueGetterType, StatType> drawer(viewportMaxX, viewportMaxY, valueGetter);
 ///    - CoordType is the coordinate class: XY, YZ or YZFull (for Z- and Z+ sections together)
-///    - ValueGetterType obtains a value from modules to decide their color. Any functor or lambda taking a Module& and returning a double can be used here.
+///    - ValueGetterType obtains a value from modules to decide their color. Any functor or lambda taking a DetectorModule& and returning a double can be used here.
 ///      Some ValueGetters are pre-defined. In case of user-defined ValueGetters, if possible use lambda or classes local to the instantiation of your PlotDrawer to avoid polluting this header with additional declarations
 ///    - StatType is the type of statistic to do on the module values obtained with the ValueGetters, in case two modules occupy the same map bin.
 ///      Default is NoStat, where values overwrite each other and the last one counts. Average, Max, Min, Sum are also available and custom statistics can be defined by the user.
@@ -565,7 +565,7 @@ struct HistogramFrameStyle {
 /// 2) Add modules to the internal maps, using either:
 ///    - void addModulesType(begin, end, moduleTypes); where the last argument moduleTypes can be the constants BARREL, ENDCAP or BARREL | ENDCAP, to restrict to one subdetector or both
 ///    - void addModules<ModuleValidator>(begin, end, isValid);  where the last argument isValid is of ModuleValidator type.
-///      A ModuleValidator is a lambda or functor taking a const Module& and returning a bool, used to decide whether a module should be included or not in the plot
+///      A ModuleValidator is a lambda or functor taking a const DetectorModule& and returning a bool, used to decide whether a module should be included or not in the plot
 /// 3) Draw the plot frame: void drawFrame<FrameStyleType>(canvas, frameStyle)
 ///   - FrameStyleType is the type of frame to draw. The predefined classes are SummaryFrameStyle (which draws eta lines) or HistogramFrameStyle (which draws the legend colour bar)
 ///   - canvas is the TCanvas to draw on. cd() is called automatically by the PlotDrawer
@@ -605,7 +605,7 @@ public:
   template<class DrawStyleType> void drawModules(TCanvas& canvas, const DrawStyleType& drawStyle = DrawStyleType());
   template<class DrawStyleType> void drawModuleContours(TCanvas& canvas, const DrawStyleType& drawStyle = DrawStyleType());
 
-  void add(const Module& m);
+  void add(const DetectorModule& m);
   template<class InputIterator> void addModulesType(InputIterator begin, InputIterator end, int moduleTypes = BARREL | ENDCAP);
   void addModules(const Visitable& structure);
   void addModulesType(const Visitable& structure, int moduleTypes = BARREL | ENDCAP);
@@ -668,7 +668,7 @@ template<class DrawStyleType>
 }
 
 template<class CoordType, class ValueGetterType, class StatType>
-void PlotDrawer<CoordType, ValueGetterType, StatType>::add(const Module& m) {
+void PlotDrawer<CoordType, ValueGetterType, StatType>::add(const DetectorModule& m) {
   CoordType c(m);
   if (!c.valid) return;
   if (bins_[c] == NULL) {
@@ -698,7 +698,7 @@ template<class CoordType, class ValueGetterType, class StatType>
     PlotDrawer<CoordType, ValueGetterType, StatType>* pd_;
   public:
     ModuleVisitor(PlotDrawer<CoordType, ValueGetterType, StatType>* pd) { pd_ = pd; };
-    void visit(const Module& m) { pd_->add(m); }
+    void visit(const DetectorModule& m) { pd_->add(m); }
   };
   ModuleVisitor v(this);
   structure.accept(v);
@@ -715,7 +715,7 @@ template<class CoordType, class ValueGetterType, class StatType>
       pd_ = pd;
       moduleTypes_ = modType;
     };
-    void visit(const Module& m) {
+    void visit(const DetectorModule& m) {
       int subDet = m.subdet();
       if (subDet & moduleTypes_) pd_->add(m);
     }
@@ -733,7 +733,7 @@ void PlotDrawer<CoordType, ValueGetterType, StatType>::addModules(const Visitabl
     const ModuleValidator& isValid_;
   public:
     ModuleVisitor(PlotDrawer<CoordType, ValueGetterType, StatType>* pd, const ModuleValidator& isValid) : pd_(pd), isValid_(isValid) {};
-    void visit(const Module& m) {
+    void visit(const DetectorModule& m) {
       int subDet = m.subdet();
       if (isValid_(m)) pd_->add(m);
     }

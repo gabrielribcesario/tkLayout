@@ -11,10 +11,7 @@
 #include "Property.hh"
 #include "Layer.hh"
 #include "Visitable.hh"
-
-namespace material {
-  class SupportStructure;
-}
+#include "SupportStructure.hh"
 
 class Barrel : public PropertyObject, public Buildable, public Identifiable<std::string>, Clonable<Barrel>, public Visitable {
 

@@ -1,12 +1,8 @@
-/**
- * @file Visitable.h
- *
- * @date 14/mag/2014
- * @author Stefano Martina
- */
+#ifndef VISITABLE_HH
+#define VISITABLE_HH
 
-#ifndef VISITABLE_H_
-#define VISITABLE_H_
+class GeometryVisitor;
+class ConstGeometryVisitor;
 
 class Visitable {
 public:
@@ -17,4 +13,4 @@ public:
   virtual void accept(ConstGeometryVisitor& v) const = 0;
 };
 
-#endif /* VISITABLE_H_ */
+#endif

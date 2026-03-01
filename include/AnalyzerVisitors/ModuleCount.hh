@@ -2,9 +2,10 @@
 #define MODULECOUNT_HH
 
 #include <string>
+#include <utility>
 #include <map>
 
-#include "Visitor.hh"
+#include "ConstGeometryVisitor.hh"
 
 class Tracker;
 class Barrel;
@@ -21,7 +22,6 @@ private:
   std::map<std::pair<std::string, std::string>, int> count_TypeSub;
   std::string currentSubdetector;
   int currentSubdetectorIndex;
-  std::string moduleSummaryType(const DetectorModule& m) const;
   void sortTypesAndDetectors();
 public:
   RootWTable* makeTable();

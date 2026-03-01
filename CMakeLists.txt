@@ -96,7 +96,6 @@ set(INSTALLABLE_TARGETS "")
 # Compile options for all targets
 add_compile_options(-Wall
                     -Werror
-                    -fmax-errors=2
                     -O3
                     -g
                     )
@@ -144,7 +143,6 @@ set(SOURCES_CORE
   src/MatParser.cc
   src/MessageLogger.cc
   src/ModuleCap.cc
-  src/Module.cc
   src/Palette.cc
   src/PlotDrawer.cc
   src/Polygon3d.cc
@@ -173,9 +171,19 @@ set(SOURCES_CORE
 
 # Analyzer Visitors
 set(SOURCES_ANALYZER_VISITORS
-  src/AnalyzerVisitors/Bandwidth.cc
-  src/AnalyzerVisitors/GeometricInfo.cc
-  src/AnalyzerVisitors/IrradiationPower.cc
+  src/AnalyzerVisitors/BandwidthVisitor.cc
+  src/AnalyzerVisitors/BarrelVisitor.cc
+  src/AnalyzerVisitors/CMSSWInnerTrackerCablingMapVisitor.cc
+  src/AnalyzerVisitors/CMSSWOuterTrackerCablingMapVisitor.cc
+  src/AnalyzerVisitors/EndcapVisitor.cc
+  src/AnalyzerVisitors/InnerTrackerModulesToDTCsVisitor.cc
+  src/AnalyzerVisitors/LayerDiskSummaryVisitor.cc
+  src/AnalyzerVisitors/ModulesToDTCsVisitor.cc
+  src/AnalyzerVisitors/SkewedLayersVisitor.cc
+  src/AnalyzerVisitors/TiltedLayersVisitor.cc
+  src/AnalyzerVisitors/TrackerSensorVisitor.cc
+  src/AnalyzerVisitors/TrackerVisitor.cc
+  src/AnalyzerVisitors/IrradiationPowerVisitor.cc
   src/AnalyzerVisitors/MaterialBillAnalyzer.cc
   src/AnalyzerVisitors/TriggerDistanceTuningPlots.cc
   src/AnalyzerVisitors/TriggerFrequency.cc

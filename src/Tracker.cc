@@ -111,7 +111,7 @@ void Tracker::addHierarchyInfoToModules() {
       const int ringIncrement = (isRingOn4Dees_ ? 1 : 2);
       bigDeltaIndex_ = (r.isSmallerAbsZRingInDisk() ? 0 : ringIncrement);
     }
-    void visit(Module& m) { 
+    void visit(DetectorModule& m) { 
       m.subdetectorId(subdetectorId_); 
     }
     void visit(BarrelModule& m) { 

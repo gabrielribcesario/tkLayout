@@ -4,12 +4,11 @@
 #include <string>
 #include <map>
 
-#include <Visitor.hh>
 #include <Report.hh>
 #include "RootWeb.hh"
 #include "SummaryTable.hh"
 #include "VizardTools.hh"
-#include "AnalyzerVisitors/IrradiationPower.hh"
+#include "AnalyzerVisitors/IrradiationPowerVisitor.hh"
 #include <TH2D.h>
 #include "AnalyzerTools.hh"
 #include "SimParms.hh"

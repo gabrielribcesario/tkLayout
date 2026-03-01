@@ -1,10 +1,10 @@
-#ifndef ENDCAP_H
-#define ENDCAP_H
+#ifndef ENDCAP_HH
+#define ENDCAP_HH
 
 #include <vector>
 #include <string>
 #include <memory>
-#include <limits.h>
+#include <limits>
 
 #include <boost/ptr_container/ptr_vector.hpp>
 
@@ -12,11 +12,7 @@
 #include "Property.hh"
 #include "Disk.hh"
 #include "Visitable.hh"
-
-namespace material {
-  class SupportStructure;
-}
-
+#include "SupportStructure.hh"
 
 class Endcap : public PropertyObject, public Buildable, public Identifiable<std::string>, public Visitable {
  private:

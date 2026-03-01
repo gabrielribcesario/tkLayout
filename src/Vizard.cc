@@ -14,6 +14,19 @@
 
 #include "MainConfigHandler.hh"
 #include "MaterialBudget.hh"
+#include "BarrelModule.hh"
+#include "EndcapModule.hh"
+#include "AnalyzerVisitors/LayerDiskSummaryVisitor.hh"
+#include "AnalyzerVisitors/SkewedLayersVisitor.hh"
+#include "AnalyzerVisitors/TiltedLayersVisitor.hh"
+#include "AnalyzerVisitors/TrackerVisitor.hh"
+#include "AnalyzerVisitors/BarrelVisitor.hh"
+#include "AnalyzerVisitors/EndcapVisitor.hh"
+#include "AnalyzerVisitors/TrackerSensorVisitor.hh"
+#include "AnalyzerVisitors/ModulesToDTCsVisitor.hh"
+#include "AnalyzerVisitors/InnerTrackerModulesToDTCsVisitor.hh"
+#include "AnalyzerVisitors/CMSSWInnerTrackerCablingMapVisitor.hh"
+#include "AnalyzerVisitors/CMSSWOuterTrackerCablingMapVisitor.hh"
 
 namespace insur {
   // public
@@ -106,7 +119,7 @@ namespace insur {
     TGeoTranslation* trans=nullptr;
     TGeoCombiTrans* trafo=nullptr;
     Layer* current=nullptr;
-    std::vector<Module*> templates;
+    std::vector<DetectorModule*> templates;
     // barrels
     if (simplified) {
       // layer loop, one tube per layer
@@ -1216,7 +1229,7 @@ namespace insur {
    * @param v A pointer to the template volume that will represent the module in the visualisation
    * @return A pointer to the finished transformation matrix object
    */
-  TGeoCombiTrans* Vizard::modulePlacement(Module* m, TGeoVolume* v) {
+  TGeoCombiTrans* Vizard::modulePlacement(DetectorModule* m, TGeoVolume* v) {
     //XYZVector ex, ey, ez, b, c, d, p;
     //TGeoArb8* arb;
     //TGeoRotation* rot;
@@ -3717,7 +3730,7 @@ namespace insur {
     // Access module operating parameters info: operating temperature and bias voltage.
     class ModuleOperatingParmsVisitor : public GeometryVisitor {  
     public:
-      void visit(Module& m) {
+      void visit(DetectorModule& m) {
 	if (!m.isPixelModule()) {
 	  outerTrackerModuleOperatingTemp_ = m.operatingTemp();
 	  outerTrackerModuleBiasVoltage_ = m.biasVoltage();
@@ -4043,12 +4056,12 @@ namespace insur {
     struct EtaConnections {
       const ModuleConnectionMap& mm_;
       EtaConnections(const ModuleConnectionMap& mm) : mm_(mm) {}
-      double operator()(const Module& m) { return mm_.at(&m).etaCpuConnections(); }
+      double operator()(const DetectorModule& m) { return mm_.at(&m).etaCpuConnections(); }
     };
     struct PhiConnections {
       const ModuleConnectionMap& mm_;
       PhiConnections(const ModuleConnectionMap& mm) : mm_(mm) {}
-      double operator()(const Module& m) { return mm_.at(&m).phiCpuConnections(); }
+      double operator()(const DetectorModule& m) { return mm_.at(&m).phiCpuConnections(); }
     };
     PlotDrawer<YZFull, EtaConnections, Max> yzDrawer(0, 0, EtaConnections(analyzer.getModuleConnectionMap())); //(2*getDrawAreaZ(tracker), getDrawAreaR(tracker));
     PlotDrawer<XY, PhiConnections, Max> xyDrawer(0, 0, PhiConnections(analyzer.getModuleConnectionMap())); //(getDrawAreaX(tracker), getDrawAreaY(tracker));
@@ -4061,7 +4074,7 @@ namespace insur {
 
     yzDrawer.drawFrame<HistogramFrameStyle>(*moduleConnectionEtaCanvas.get());
     xyDrawer.drawFrame<HistogramFrameStyle>(*moduleConnectionPhiCanvas.get());
-    std::pair<Circle, Circle> petal = analyzer.getSampleTriggerPetal();
+    std::pair<AnalyzerHelpers::Circle, AnalyzerHelpers::Circle> petal = analyzer.getSampleTriggerPetal();
     TArc* a1 = new TArc(petal.first.x0, petal.first.y0, petal.first.r, (XYPoint(petal.first.x0, petal.first.y0)).Phi()*180./M_PI + 180.);
     TArc* a2 = new TArc(petal.second.x0, petal.second.y0, petal.second.r, 0., (XYPoint(petal.second.x0, petal.second.y0)).Phi()*180./M_PI + 180.);
     a1->SetFillStyle(0);
@@ -6635,13 +6648,13 @@ namespace insur {
     suggestedSpacingAWCanvas->SetFillColor(color_plot_background);
     nominalCutCanvas->SetFillColor(color_plot_background);
 
-    struct Spacing { double operator()(const Module& m) { return m.dsDistance(); } };
+    struct Spacing { double operator()(const DetectorModule& m) { return m.dsDistance(); } };
     PlotDrawer<YZ, Spacing> thicknessDrawer;
     thicknessDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end());
     thicknessDrawer.drawFrame<HistogramFrameStyle>(*thickCanvas.get());
     thicknessDrawer.drawModules<ContourStyle>(*thickCanvas.get());
 
-    struct TriggerWindow { double operator()(const Module& m) { return m.triggerWindow(); } };
+    struct TriggerWindow { double operator()(const DetectorModule& m) { return m.triggerWindow(); } };
     PlotDrawer<YZ, TriggerWindow> windowDrawer;
     windowDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end());
     windowDrawer.drawFrame<HistogramFrameStyle>(*windowCanvas.get());
@@ -6659,7 +6672,7 @@ namespace insur {
       suggestedSpacingAWCanvas->cd();
       suggestedSpacingMapAW.Draw("colz");
       nominalCutCanvas->cd();
-      //struct PtCut { double operator()(const Module& m) { return PtErrorAdapter(m).getPtCut(); } };
+      //struct PtCut { double operator()(const DetectorModule& m) { return PtErrorAdapter(m).getPtCut(); } };
       //PlotDrawer<YZ, PtCut> cutDrawer;
       //cutDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end());
       //cutDrawer.drawFrame<HistogramFrameStyle>(*nominalCutCanvas.get());
@@ -7345,7 +7358,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
       line2->Draw();
 }
 
-  void Vizard::drawAxesAndNameRZ(const Module* aModule, double yScale) {
+  void Vizard::drawAxesAndNameRZ(const DetectorModule* aModule, double yScale) {
     const auto& locX = aModule->getLocalX();
     const auto& locY = aModule->getLocalY();
     // Z axis
@@ -7381,7 +7394,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
   }
 
 
-  void Vizard::drawAxesAndNameXY(const Module* aModule, double yScale, bool endcap=true) {
+  void Vizard::drawAxesAndNameXY(const DetectorModule* aModule, double yScale, bool endcap=true) {
     const auto& locX = aModule->getLocalX();
     const auto& locY = aModule->getLocalY();
     // Z axis
@@ -7468,7 +7481,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
 
     class BarrelVisitor : public ConstGeometryVisitor {
       public:
-        std::set<const Module*> moduleSet;
+        std::set<const DetectorModule*> moduleSet;
         void visit(const BarrelModule& m) { moduleSet.insert(&m); }
     };
     BarrelVisitor bv;
@@ -7511,18 +7524,18 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
       if (anEndcap.disks().size()>0) {
 	const Disk& lastDisk = anEndcap.disks().back();
      
-	const std::map<int, std::vector<const Module*> >& allSurfaceModules = lastDisk.getSurfaceModules();
+	const std::map<int, std::vector<const DetectorModule*> >& allSurfaceModules = lastDisk.getSurfaceModules();
 	for (int surfaceIndex = 1; surfaceIndex <= 4; surfaceIndex++) {
 	  auto found = allSurfaceModules.find(surfaceIndex);
 	  if (found != allSurfaceModules.end()) {
-	    const std::vector<const Module*>& surfaceModules = found->second;
+	    const std::vector<const DetectorModule*>& surfaceModules = found->second;
 	    std::unique_ptr<TCanvas> XYCanvasEC(new TCanvas(Form("XYCanvasEC_%s_%d", anEndcap.myid().c_str(), surfaceIndex),
 					      Form("XY Endcap %s surf. %d, z>0, looking into IP", anEndcap.myid().c_str(), surfaceIndex),
 					      vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	    XYCanvasEC->cd();
 	    PlotDrawer<XY, Type> xyEndcapDrawer;
 
-	    xyEndcapDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
+	    xyEndcapDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const DetectorModule& m ) { return (m.subdet() == ENDCAP); } );
 	    xyEndcapDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasEC.get());
 	    xyEndcapDrawer.drawModules<ContourStyle>(*XYCanvasEC.get());
 	    xyEndcapDrawer.drawModuleContours<ContourStyle>(*XYCanvasEC.get());
@@ -7550,12 +7563,12 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
 					      std::vector<std::unique_ptr<TCanvas> > &XYPosBundlesDisks, std::vector<std::unique_ptr<TCanvas> > &XYPosBundlesDiskSurfaces,
 					      std::vector<std::unique_ptr<TCanvas> > &XYNegBundlesDisks, std::vector<std::unique_ptr<TCanvas> > &XYNegBundlesDiskSurfaces) {
     
-    const std::set<Module*>& trackerModules = tracker.modules();
+    const std::set<DetectorModule*>& trackerModules = tracker.modules();
     RZCanvas.reset(new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY));
     RZCanvas->cd();
     PlotDrawer<YZFull, TypeBundleTransparentColor> yzDrawer;
     // TBPS flat part: only draw 2 consecutives MFBs in phi, otherwise confusing drawing effect happens on bundle coloring.
-    yzDrawer.addModules(trackerModules.begin(), trackerModules.end(), [] (const Module& m ) { 
+    yzDrawer.addModules(trackerModules.begin(), trackerModules.end(), [] (const DetectorModule& m ) { 
 	return ( (!m.getBundle()->isBarrelPSFlatPart()) 
 		 || (m.getBundle()->isBarrelPSFlatPart() && (m.getBundle()->phiPosition().phiSegmentRef() == 0 
 							     || m.getBundle()->phiPosition().phiSegmentRef() == 1)) 
@@ -7568,7 +7581,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
     XYNegCanvas.reset(new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYNegCanvas->cd();
     PlotDrawer<XYNeg, TypeBundleColor> xyNegBarrelDrawer;
-    xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveCablingSide() < 0); } );
+    xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const DetectorModule& m ) { return (m.subdet() == BARREL && m.isPositiveCablingSide() < 0); } );
     xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas.get());
     xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas.get());
     drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
@@ -7577,7 +7590,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
     XYCanvas.reset(new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYCanvas->cd();
     PlotDrawer<XY, TypeBundleColor> xyBarrelDrawer;
-    xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveCablingSide() > 0); } );
+    xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const DetectorModule& m ) { return (m.subdet() == BARREL && m.isPositiveCablingSide() > 0); } );
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas.get());
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas.get());
     drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
@@ -7604,19 +7617,19 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
     for (auto& anEndcap : tracker.endcaps() ) {
       if (anEndcap.disks().size() > 0) {
 	const Disk& lastDisk = anEndcap.disks().back();	
-	const std::map<int, std::vector<const Module*> >& allSurfaceModules = lastDisk.getSurfaceModules();
+	const std::map<int, std::vector<const DetectorModule*> >& allSurfaceModules = lastDisk.getSurfaceModules();
 	for (int surfaceIndex = 1; surfaceIndex <= 4; surfaceIndex++) {
 	  auto found = allSurfaceModules.find(surfaceIndex);
 	  if (found != allSurfaceModules.end()) {  
 	    // Surface seen rotated: (+Z) towards the depth of the screen
 	    if ((surfaceIndex % 2) == 1) {
-	      const std::vector<const Module*>& surfaceModules = found->second;
+	      const std::vector<const DetectorModule*>& surfaceModules = found->second;
 	      std::unique_ptr<TCanvas> XYSurfaceDisk(new TCanvas(Form("XYPosRotateY180BundleEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
 						   Form("(XY) Section : Endcap %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
 						   vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	      XYSurfaceDisk->cd();
 	      PlotDrawer<XYRotateY180, TypeFanoutBranchTransparentColor> xyDiskDrawer;
-	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
+	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const DetectorModule& m ) { return (m.subdet() == ENDCAP); } );
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk.get());
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk.get());
 	      const bool isRotatedY180 = true;
@@ -7625,13 +7638,13 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
 	    }
 	    // (+Z) towards you
 	    else {
-	      const std::vector<const Module*>& surfaceModules = found->second;
+	      const std::vector<const DetectorModule*>& surfaceModules = found->second;
 	      std::unique_ptr<TCanvas> XYSurfaceDisk(new TCanvas(Form("XYPosBundleEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
 						   Form("(XY) Section : Endcap %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
 						   vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	      XYSurfaceDisk->cd();
 	      PlotDrawer<XY, TypeFanoutBranchTransparentColor> xyDiskDrawer;
-	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
+	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const DetectorModule& m ) { return (m.subdet() == ENDCAP); } );
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk.get());
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk.get());
 	      drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
@@ -7667,20 +7680,20 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
     for (auto& anEndcap : tracker.endcaps() ) {
       if (anEndcap.disks().size() > 0) {
 	const Disk& firstDisk = anEndcap.disks().front();	
-	const std::map<int, std::vector<const Module*> >& allSurfaceModules = firstDisk.getSurfaceModules();
+	const std::map<int, std::vector<const DetectorModule*> >& allSurfaceModules = firstDisk.getSurfaceModules();
 	for (int surfaceIndex = 1; surfaceIndex <= 4; surfaceIndex++) {
 	  auto found = allSurfaceModules.find(surfaceIndex);
 	  if (found != allSurfaceModules.end()) {
 	    // (+Z) towards you
 	    if ((surfaceIndex % 2) == 1) {
-	      const std::vector<const Module*>& surfaceModules = found->second;
+	      const std::vector<const DetectorModule*>& surfaceModules = found->second;
 	      std::unique_ptr<TCanvas> XYNegSurfaceDisk(new TCanvas(Form("XYNegBundleEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
 						      Form("(XY) Section : Endcap %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", 
 							   anEndcap.myid().c_str(), surfaceIndex),
 						      vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	      XYNegSurfaceDisk->cd();
 	      PlotDrawer<XYNeg, TypeFanoutBranchTransparentColor> xyDiskDrawer;
-	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
+	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const DetectorModule& m ) { return (m.subdet() == ENDCAP); } );
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegSurfaceDisk.get());
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYNegSurfaceDisk.get());
 	      drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
@@ -7688,14 +7701,14 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
 	    }
 	    // Surface seen rotated: (+Z) towards the depth of the screen
 	    else {
-	      const std::vector<const Module*>& surfaceModules = found->second;
+	      const std::vector<const DetectorModule*>& surfaceModules = found->second;
 	      std::unique_ptr<TCanvas> XYNegSurfaceDisk(new TCanvas(Form("XYNegBundleEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
 						      Form("(XY) Section : Endcap %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", 
 							   anEndcap.myid().c_str(), surfaceIndex),
 						      vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	      XYNegSurfaceDisk->cd();
 	      PlotDrawer<XYNegRotateY180, TypeFanoutBranchTransparentColor> xyDiskDrawer;
-	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
+	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const DetectorModule& m ) { return (m.subdet() == ENDCAP); } );
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYNegSurfaceDisk.get());
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYNegSurfaceDisk.get());
 	      const bool isRotatedY180 = true;
@@ -7719,11 +7732,11 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
 					   std::unique_ptr<TCanvas> &XYNegCanvas, std::unique_ptr<TCanvas> &XYNegFlatCanvas, std::unique_ptr<TCanvas> &XYCanvas, std::unique_ptr<TCanvas> &XYFlatCanvas, 
 					   std::vector<std::unique_ptr<TCanvas> > &XYCanvasesDisk) {
 
-    const std::set<Module*>& trackerModules = tracker.modules();
+    const std::set<DetectorModule*>& trackerModules = tracker.modules();
     RZCanvas.reset(new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY));
     RZCanvas->cd();
     PlotDrawer<YZFull, TypeDTCTransparentColor> yzDrawer;
-    yzDrawer.addModules(trackerModules.begin(), trackerModules.end(), [] (const Module& m ) { 
+    yzDrawer.addModules(trackerModules.begin(), trackerModules.end(), [] (const DetectorModule& m ) { 
 	return ( (m.isPositiveCablingSide() > 0 && m.dtcPhiSectorRef() == 1) || (m.isPositiveCablingSide() < 0 && m.dtcPhiSectorRef() == 2) ); 
       } );
     yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas.get());
@@ -7733,7 +7746,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
     XYNegCanvas.reset(new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYNegCanvas->cd();
     PlotDrawer<XYNeg, TypeDTCColor> xyNegBarrelDrawer;
-    xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0)); } );
+    xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const DetectorModule& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0)); } );
     xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas.get());
     xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas.get());
     drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
@@ -7742,7 +7755,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
     XYNegFlatCanvas.reset(new TCanvas("XYNegFlatCanvas", "XYNegFlatView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYNegFlatCanvas->cd();
     PlotDrawer<XYNeg, TypeDTCColor> xyNegFlatBarrelDrawer;
-    xyNegFlatBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0) && !m.isTilted()); } );
+    xyNegFlatBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const DetectorModule& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0) && !m.isTilted()); } );
     xyNegFlatBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegFlatCanvas.get());
     xyNegFlatBarrelDrawer.drawModules<ContourStyle>(*XYNegFlatCanvas.get());
     drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
@@ -7751,7 +7764,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
     XYCanvas.reset(new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYCanvas->cd();
     PlotDrawer<XY, TypeDTCColor> xyBarrelDrawer;
-    xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0)); } );
+    xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const DetectorModule& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0)); } );
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas.get());
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas.get());
     drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
@@ -7760,7 +7773,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
     XYFlatCanvas.reset(new TCanvas("XYFlatCanvas", "XYView FlatCanvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYFlatCanvas->cd();
     PlotDrawer<XY, TypeDTCColor> xyBarrelFlatDrawer;
-    xyBarrelFlatDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0) && !m.isTilted()); } );
+    xyBarrelFlatDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const DetectorModule& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0) && !m.isTilted()); } );
     xyBarrelFlatDrawer.drawFrame<SummaryFrameStyle>(*XYFlatCanvas.get());
     xyBarrelFlatDrawer.drawModules<ContourStyle>(*XYFlatCanvas.get());
     drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
@@ -7803,7 +7816,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
     XYNegCanvas.reset(new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYNegCanvas->cd();
     PlotDrawer<XYNeg, TypeOpticalChannelColor> xyNegBarrelDrawer;
-    xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0)); } );
+    xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const DetectorModule& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0)); } );
     xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas.get());
     xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas.get());
     drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
@@ -7813,7 +7826,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
     XYNegFlatCanvas.reset(new TCanvas("XYNegFlatCanvas", "XYNegFlatView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYNegFlatCanvas->cd();
     PlotDrawer<XYNeg, TypeOpticalChannelColor> xyNegFlatBarrelDrawer;
-    xyNegFlatBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0) && !m.isTilted()); } );
+    xyNegFlatBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const DetectorModule& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0) && !m.isTilted()); } );
     xyNegFlatBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegFlatCanvas.get());
     xyNegFlatBarrelDrawer.drawModules<ContourStyle>(*XYNegFlatCanvas.get());
     drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
@@ -7823,7 +7836,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
     XYCanvas.reset(new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYCanvas->cd();
     PlotDrawer<XY, TypeOpticalChannelColor> xyBarrelDrawer;
-    xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0)); } );
+    xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const DetectorModule& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0)); } );
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas.get());
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas.get());
     drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
@@ -7833,7 +7846,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
     XYFlatCanvas.reset(new TCanvas("XYFlatCanvas", "XYView FlatCanvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYFlatCanvas->cd();
     PlotDrawer<XY, TypeOpticalChannelColor> xyBarrelFlatDrawer;
-    xyBarrelFlatDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0) && !m.isTilted()); } );
+    xyBarrelFlatDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const DetectorModule& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0) && !m.isTilted()); } );
     xyBarrelFlatDrawer.drawFrame<SummaryFrameStyle>(*XYFlatCanvas.get());
     xyBarrelFlatDrawer.drawModules<ContourStyle>(*XYFlatCanvas.get());
     drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
@@ -7880,7 +7893,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
     XYNegCanvas.reset(new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYNegCanvas->cd();
     PlotDrawer<XYNegRotateY180, TypePowerChannelColor> xyNegBarrelDrawer;
-    xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0)); } );
+    xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const DetectorModule& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0)); } );
     xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas.get());
     xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas.get());
     drawPhiSectorsBoundaries(outer_cabling_nonantWidth, isRotatedY180);  // Spider lines
@@ -7891,7 +7904,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
     XYNegFlatCanvas.reset(new TCanvas("XYNegFlatCanvas", "XYNegFlatView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYNegFlatCanvas->cd();
     PlotDrawer<XYNegRotateY180, TypePowerChannelColor> xyNegFlatBarrelDrawer;
-    xyNegFlatBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0) && !m.isTilted()); } );
+    xyNegFlatBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const DetectorModule& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() < 0) && !m.isTilted()); } );
     xyNegFlatBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegFlatCanvas.get());
     xyNegFlatBarrelDrawer.drawModules<ContourStyle>(*XYNegFlatCanvas.get());
     drawPhiSectorsBoundaries(outer_cabling_nonantWidth, isRotatedY180);  // Spider lines
@@ -7902,7 +7915,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
     XYCanvas.reset(new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYCanvas->cd();
     PlotDrawer<XY, TypePowerChannelColor> xyBarrelDrawer;
-    xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0)); } );
+    xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const DetectorModule& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0)); } );
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas.get());
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas.get());
     drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
@@ -7912,7 +7925,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
     XYFlatCanvas.reset(new TCanvas("XYFlatCanvas", "XYView FlatCanvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYFlatCanvas->cd();
     PlotDrawer<XY, TypePowerChannelColor> xyBarrelFlatDrawer;
-    xyBarrelFlatDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0) && !m.isTilted()); } );
+    xyBarrelFlatDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const DetectorModule& m ) { return ((m.subdet() == BARREL) && (m.isPositiveCablingSide() > 0) && !m.isTilted()); } );
     xyBarrelFlatDrawer.drawFrame<SummaryFrameStyle>(*XYFlatCanvas.get());
     xyBarrelFlatDrawer.drawModules<ContourStyle>(*XYFlatCanvas.get());
     drawPhiSectorsBoundaries(outer_cabling_nonantWidth);  // Spider lines
@@ -8279,7 +8292,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
 					Form("(ZPhi), Barrel Layer %d. (+X) side.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
       ZPhiCanvasPos->cd();
       PlotDrawer<ZPhi, TypePowerChainTransparentColor> zphiBarrelDrawerPos;
-      zphiBarrelDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+      zphiBarrelDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const DetectorModule& m ) { 
 	  return (m.subdet() == BARREL 
 		  && m.uniRef().layer == layerNumber
 		  && m.isPositiveXSide()
@@ -8293,7 +8306,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
 					Form("(ZPhi), Barrel Layer %d. (-X) side.", layerNumber), vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
       ZPhiCanvasNeg->cd();
       PlotDrawer<ZPhi, TypePowerChainTransparentColor> zphiBarrelDrawerNeg;
-      zphiBarrelDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+      zphiBarrelDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const DetectorModule& m ) { 
 	  return (m.subdet() == BARREL 
 		  && m.uniRef().layer == layerNumber
 		  && !m.isPositiveXSide()
@@ -8309,7 +8322,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
     XYNegCanvas.reset(new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYNegCanvas->cd();
     PlotDrawer<XYNeg, TypePowerChainTransparentColor> xyNegBarrelDrawer;
-    xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() < 0); } );
+    xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const DetectorModule& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() < 0); } );
     xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas.get());
     xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas.get());
     drawFrameOfReference(isRotatedY180, barrelScalingFactor);
@@ -8319,7 +8332,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
     XYCentralCanvas.reset(new TCanvas("XYCentralCanvas", "XYCentralView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYCentralCanvas->cd();
     PlotDrawer<XY, TypePowerChainTransparentColor> xyCentralBarrelDrawer;
-    xyCentralBarrelDrawer.addModules( tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.uniRef().ring == 1); } );
+    xyCentralBarrelDrawer.addModules( tracker.modules().begin(), tracker.modules().end(), [] (const DetectorModule& m ) { return (m.subdet() == BARREL && m.uniRef().ring == 1); } );
     xyCentralBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCentralCanvas.get());
     xyCentralBarrelDrawer.drawModules<ContourStyle>(*XYCentralCanvas.get());
     drawFrameOfReference(isRotatedY180, barrelScalingFactor);
@@ -8329,7 +8342,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
     XYCanvas.reset(new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYCanvas->cd();
     PlotDrawer<XY, TypePowerChainTransparentColor> xyBarrelDrawer;
-    xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() > 0); } );
+    xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const DetectorModule& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() > 0); } );
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas.get());
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas.get());
     drawFrameOfReference(isRotatedY180, barrelScalingFactor);
@@ -8338,20 +8351,20 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
     for (auto& anEndcap : tracker.endcaps() ) {
       if (anEndcap.disks().size() > 0) {
 	const Disk& lastDisk = anEndcap.disks().back();	
-	const std::map<int, std::vector<const Module*> >& allSurfaceModules = lastDisk.getSurfaceModules();
+	const std::map<int, std::vector<const DetectorModule*> >& allSurfaceModules = lastDisk.getSurfaceModules();
 	for (int surfaceIndex = 1; surfaceIndex <= 4; surfaceIndex++) {
 	  auto found = allSurfaceModules.find(surfaceIndex);
 	  if (found != allSurfaceModules.end()) {  
 	    // Surface seen rotated: (+Z) towards the depth of the screen
 	    if ((surfaceIndex % 2) == 1) {
 	      isRotatedY180 = true;;
-	      const std::vector<const Module*>& surfaceModules = found->second;
+	      const std::vector<const DetectorModule*>& surfaceModules = found->second;
 	      std::unique_ptr<TCanvas> XYSurfaceDisk(new TCanvas(Form("XYPosRotateY180PowerChainEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
 						   Form("(XY) Section : %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
 						   vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	      XYSurfaceDisk->cd();
 	      PlotDrawer<XYRotateY180, TypePowerChainTransparentColor> xyDiskDrawer(forwardViewPort, forwardViewPort);
-	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
+	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const DetectorModule& m ) { return (m.subdet() == ENDCAP); } );
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk.get());
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk.get());
 	      drawFrameOfReference(isRotatedY180, forwardScalingFactor);
@@ -8360,13 +8373,13 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
 	    // (+Z) towards you
 	    else {
 	      isRotatedY180 = false;
-	      const std::vector<const Module*>& surfaceModules = found->second;
+	      const std::vector<const DetectorModule*>& surfaceModules = found->second;
 	      std::unique_ptr<TCanvas> XYSurfaceDisk(new TCanvas(Form("XYPosPowerChainEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
 						   Form("(XY) Section : %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
 						   vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	      XYSurfaceDisk->cd();
 	      PlotDrawer<XY, TypePowerChainTransparentColor> xyDiskDrawer(forwardViewPort, forwardViewPort);
-	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { return (m.subdet() == ENDCAP); } );
+	      xyDiskDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const DetectorModule& m ) { return (m.subdet() == ENDCAP); } );
 	      xyDiskDrawer.drawFrame<SummaryFrameStyle>(*XYSurfaceDisk.get());
 	      xyDiskDrawer.drawModules<ContourStyle>(*XYSurfaceDisk.get());
 	      drawFrameOfReference(isRotatedY180, forwardScalingFactor);
@@ -8403,7 +8416,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
       ZPhiCanvasPos->cd();
       // Filled modules
       PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelFillDrawerPos;
-      zphiBarrelFillDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+      zphiBarrelFillDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const DetectorModule& m ) { 
 	  return (m.subdet() == BARREL 
 		  && m.uniRef().layer == layerNumber
 		  && m.isPositiveXSide()
@@ -8415,7 +8428,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
       zphiBarrelFillDrawerPos.drawModules<FillStyle>(*ZPhiCanvasPos.get());
       // Contour modules
       PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelContourDrawerPos;
-      zphiBarrelContourDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+      zphiBarrelContourDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const DetectorModule& m ) { 
 	  return (m.subdet() == BARREL 
 		  && m.uniRef().layer == layerNumber
 		  && m.isPositiveXSide()
@@ -8425,7 +8438,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
       zphiBarrelContourDrawerPos.drawModules<ContourStyle>(*ZPhiCanvasPos.get());
       // Dashed modules
       PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelDashedDrawerPos;
-      zphiBarrelDashedDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+      zphiBarrelDashedDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const DetectorModule& m ) { 
 	  return (m.subdet() == BARREL 
 		  && m.uniRef().layer == layerNumber
 		  && m.isPositiveXSide()
@@ -8434,7 +8447,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
 	} );
       zphiBarrelDashedDrawerPos.drawModules<DashedStyle>(*ZPhiCanvasPos.get());
       PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelHatchedDrawerPos;
-      zphiBarrelHatchedDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+      zphiBarrelHatchedDrawerPos.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const DetectorModule& m ) { 
 	  return (m.subdet() == BARREL 
 		  && m.uniRef().layer == layerNumber
 		  && m.isPositiveXSide()
@@ -8451,7 +8464,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
       ZPhiCanvasNeg->cd();
       // Filled modules
       PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelFillDrawerNeg;
-      zphiBarrelFillDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+      zphiBarrelFillDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const DetectorModule& m ) { 
 	  return (m.subdet() == BARREL 
 		  && m.uniRef().layer == layerNumber
 		  && !m.isPositiveXSide()
@@ -8463,7 +8476,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
       zphiBarrelFillDrawerNeg.drawModules<FillStyle>(*ZPhiCanvasNeg.get());
       // Contour modules
       PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelContourDrawerNeg;
-      zphiBarrelContourDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+      zphiBarrelContourDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const DetectorModule& m ) { 
 	  return (m.subdet() == BARREL 
 		  && m.uniRef().layer == layerNumber
 		  && !m.isPositiveXSide()
@@ -8473,7 +8486,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
       zphiBarrelContourDrawerNeg.drawModules<ContourStyle>(*ZPhiCanvasNeg.get());
       // Dashed modules
       PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelDashedDrawerNeg;
-      zphiBarrelDashedDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+      zphiBarrelDashedDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const DetectorModule& m ) { 
 	  return (m.subdet() == BARREL 
 		  && m.uniRef().layer == layerNumber
 		  && !m.isPositiveXSide()
@@ -8482,7 +8495,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
 	} );
       zphiBarrelDashedDrawerNeg.drawModules<DashedStyle>(*ZPhiCanvasNeg.get());
       PlotDrawer<ZPhi, TypeGBTTransparentColor> zphiBarrelHatchedDrawerNeg;
-      zphiBarrelHatchedDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const Module& m ) { 
+      zphiBarrelHatchedDrawerNeg.addModules(tracker.modules().begin(), tracker.modules().end(), [layerNumber] (const DetectorModule& m ) { 
 	  return (m.subdet() == BARREL 
 		  && m.uniRef().layer == layerNumber
 		  && !m.isPositiveXSide()
@@ -8500,21 +8513,21 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
     for (auto& anEndcap : tracker.endcaps() ) {
       if (anEndcap.disks().size() > 0) {
 	const Disk& lastDisk = anEndcap.disks().back();	
-	const std::map<int, std::vector<const Module*> >& allSurfaceModules = lastDisk.getSurfaceModules();
+	const std::map<int, std::vector<const DetectorModule*> >& allSurfaceModules = lastDisk.getSurfaceModules();
 	for (int surfaceIndex = 1; surfaceIndex <= 4; surfaceIndex++) {
 	  auto found = allSurfaceModules.find(surfaceIndex);
 	  if (found != allSurfaceModules.end()) {  
 	    // Surface seen rotated: (+Z) towards the depth of the screen
 	    if ((surfaceIndex % 2) == 1) {
 	      bool isRotatedY180 = true;;
-	      const std::vector<const Module*>& surfaceModules = found->second;
+	      const std::vector<const DetectorModule*>& surfaceModules = found->second;
 	      std::unique_ptr<TCanvas> XYSurfaceDisk(new TCanvas(Form("XYPosRotateY180GBTEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
 						   Form("(XY) Section : %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
 						   vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	      XYSurfaceDisk->cd();
 	      // Filled modules
 	      PlotDrawer<XYRotateY180, TypeGBTTransparentColor> xyDiskFillDrawer(forwardViewPort, forwardViewPort);
-	      xyDiskFillDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
+	      xyDiskFillDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const DetectorModule& m ) { 
 		  return ( (m.subdet() == ENDCAP)
 			   && ((m.getGBT() ? m.getGBT()->plotStyleGBTIndexInPowerChain() : 0) == 0)
 			   );
@@ -8524,7 +8537,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
 	      xyDiskFillDrawer.drawModules<FillStyle>(*XYSurfaceDisk.get());
 	      // Contour modules
 	      PlotDrawer<XYRotateY180, TypeGBTTransparentColor> xyDiskContourDrawer(forwardViewPort, forwardViewPort);
-	      xyDiskContourDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
+	      xyDiskContourDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const DetectorModule& m ) { 
 		  return ( (m.subdet() == ENDCAP)
 			   && ((m.getGBT() ? m.getGBT()->plotStyleGBTIndexInPowerChain() : 0) == 1)
 			   );
@@ -8533,14 +8546,14 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
 	      //drawFrameOfReference(isRotatedY180, forwardScalingFactor);
 	      //XYPosGBTsDiskSurfaces.push_back(std::move(XYSurfaceDisk));
 	      PlotDrawer<XYRotateY180, TypeGBTTransparentColor> xyDiskDashedDrawer(forwardViewPort, forwardViewPort);
-	      xyDiskDashedDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
+	      xyDiskDashedDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const DetectorModule& m ) { 
 		  return ( (m.subdet() == ENDCAP)
 			   && ((m.getGBT() ? m.getGBT()->plotStyleGBTIndexInPowerChain() : 0) == 2)
 			   );
 		} );
 	      xyDiskDashedDrawer.drawModules<DashedStyle>(*XYSurfaceDisk.get());
 	      PlotDrawer<XYRotateY180, TypeGBTTransparentColor> xyDiskHatchedDrawer(forwardViewPort, forwardViewPort);
-	      xyDiskHatchedDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
+	      xyDiskHatchedDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const DetectorModule& m ) { 
 		  return ( (m.subdet() == ENDCAP)
 			   && ((m.getGBT() ? m.getGBT()->plotStyleGBTIndexInPowerChain() : 0) == 3)
 			   );
@@ -8553,14 +8566,14 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
 	    // (+Z) towards you
 	    else {
 	      bool isRotatedY180 = false;
-	      const std::vector<const Module*>& surfaceModules = found->second;
+	      const std::vector<const DetectorModule*>& surfaceModules = found->second;
 	      std::unique_ptr<TCanvas> XYSurfaceDisk(new TCanvas(Form("XYPosGBTEndcap_%sAnyDiskSurface_%d", anEndcap.myid().c_str(), surfaceIndex),
 								 Form("(XY) Section : %s, any Disk, Surface %d. (The 4 surfaces of a disk are indexed such that |zSurface1| < |zSurface2| < |zSurface3| < |zSurface4|)", anEndcap.myid().c_str(), surfaceIndex),
 								 vis_min_canvas_sizeX, vis_min_canvas_sizeY) );
 	      XYSurfaceDisk->cd();
 	      // Filled modules
 	      PlotDrawer<XY, TypeGBTTransparentColor> xyDiskFillDrawer(forwardViewPort, forwardViewPort);
-	      xyDiskFillDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
+	      xyDiskFillDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const DetectorModule& m ) { 
 		  return ( (m.subdet() == ENDCAP)
 			   && (femod((m.getGBT() ? m.getGBT()->GBTIndexInPowerChain() : 0), 3) == 0)
 			   );
@@ -8570,7 +8583,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
 	      xyDiskFillDrawer.drawModules<FillStyle>(*XYSurfaceDisk.get());
 	      // Contour modules
 	      PlotDrawer<XY, TypeGBTTransparentColor> xyDiskContourDrawer(forwardViewPort, forwardViewPort);
-	      xyDiskContourDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
+	      xyDiskContourDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const DetectorModule& m ) { 
 		  return ( (m.subdet() == ENDCAP)
 			   && (femod((m.getGBT() ? m.getGBT()->GBTIndexInPowerChain() : 0), 3) == 1)
 			   );
@@ -8578,14 +8591,14 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
 	      xyDiskContourDrawer.drawModules<ContourStyle>(*XYSurfaceDisk.get());
 	      //drawFrameOfReference(isRotatedY180, forwardScalingFactor);
 	      PlotDrawer<XY, TypeGBTTransparentColor> xyDiskDashedDrawer(forwardViewPort, forwardViewPort);
-	      xyDiskDashedDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
+	      xyDiskDashedDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const DetectorModule& m ) { 
 		  return ( (m.subdet() == ENDCAP)
 			   && (femod((m.getGBT() ? m.getGBT()->GBTIndexInPowerChain() : 0), 3) == 2)
 			   );
 		} );
 	      xyDiskDashedDrawer.drawModules<DashedStyle>(*XYSurfaceDisk.get());
 	      PlotDrawer<XY, TypeGBTTransparentColor> xyDiskHatchedDrawer(forwardViewPort, forwardViewPort);
-	      xyDiskHatchedDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const Module& m ) { 
+	      xyDiskHatchedDrawer.addModules(surfaceModules.begin(), surfaceModules.end(), [] (const DetectorModule& m ) { 
 		  return ( (m.subdet() == ENDCAP)
 			   && (femod((m.getGBT() ? m.getGBT()->GBTIndexInPowerChain() : 0), 3) == 3)
 			   );
@@ -8622,7 +8635,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
     XYNegCanvas.reset(new TCanvas("XYNegCanvas", "XYNegView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYNegCanvas->cd();
     PlotDrawer<XYNeg, TypeInnerBundleTransparentColor> xyNegBarrelDrawer;
-    xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() < 0); } );
+    xyNegBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const DetectorModule& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() < 0); } );
     xyNegBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYNegCanvas.get());
     xyNegBarrelDrawer.drawModules<ContourStyle>(*XYNegCanvas.get());
     drawFrameOfReference(isRotatedY180, barrelScalingFactor);
@@ -8632,7 +8645,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
     XYPosCanvas.reset(new TCanvas("XYPosCanvas", "XYPosView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYPosCanvas->cd();
     PlotDrawer<XY, TypeInnerBundleTransparentColor> xyBarrelDrawer;
-    xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() > 0); } );
+    xyBarrelDrawer.addModules(tracker.modules().begin(), tracker.modules().end(), [] (const DetectorModule& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() > 0); } );
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYPosCanvas.get());
     xyBarrelDrawer.drawModules<ContourStyle>(*XYPosCanvas.get());
     drawFrameOfReference(isRotatedY180, barrelScalingFactor);
@@ -8668,7 +8681,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
 					   std::unique_ptr<TCanvas> &XYPosCanvas,
 					   std::vector<std::unique_ptr<TCanvas> > &XYPosDTCsDisks) {
 
-    const std::set<Module*>& trackerModules = tracker.modules();
+    const std::set<DetectorModule*>& trackerModules = tracker.modules();
     RZCanvas.reset(new TCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY));
     RZCanvas->cd();
     PlotDrawer<YZFull, TypeInnerDTCTransparentColor> yzDrawer;
@@ -8688,7 +8701,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
     XYPosCanvas.reset(new TCanvas("XYPosCanvas", "XYPosView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY ));
     XYPosCanvas->cd();
     PlotDrawer<XY, TypeInnerDTCTransparentColor> xyBarrelDrawer;
-    xyBarrelDrawer.addModules(trackerModules.begin(), trackerModules.end(), [] (const Module& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() > 0); } );
+    xyBarrelDrawer.addModules(trackerModules.begin(), trackerModules.end(), [] (const DetectorModule& m ) { return (m.subdet() == BARREL && m.isPositiveZEnd() > 0); } );
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYPosCanvas.get());
     xyBarrelDrawer.drawModules<ContourStyle>(*XYPosCanvas.get());
     drawFrameOfReference(isRotatedY180, barrelScalingFactor);
@@ -8886,7 +8899,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
     // .csv header
     moduleConnectionsCsv_ += "subdetectorId, z, rho, phi, detId, tt_list" + csv_eol;
     // Copy of the map to vector of pairs for sorting by detId
-    std::vector<std::pair<const Module*, TriggerProcessorBandwidthVisitor::ModuleConnectionData>> vecModCon(moduleConnections.cbegin(), moduleConnections.cend());
+    std::vector<std::pair<const DetectorModule*, TriggerProcessorBandwidthVisitor::ModuleConnectionData>> vecModCon(moduleConnections.cbegin(), moduleConnections.cend());
     std::sort(vecModCon.begin(), vecModCon.end(), [](const auto& a, const auto& b) {
       return a.second.detId() < b.second.detId();
     });
@@ -9070,7 +9083,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
 		       << bundle->powerChannelSection()->channelNumber() << " " 
 		       << any2str(bundle->powerChannelSection()->channelSlot()) << ", ";
 
-	    const std::vector<Module*>& myModules = bundle->modules();
+	    const std::vector<DetectorModule*>& myModules = bundle->modules();
 	    for (const auto& module : myModules) {
 	      std::stringstream moduleInfo;
 	      moduleInfo << module->myDetId() << ", "
@@ -9134,7 +9147,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
 	      // Create pattern related to the bundle.
 	      std::map<int, int> pattern;
 	      std::vector<std::string> modulesInBundleInfo;
-	      const std::vector<Module*>& myModules = bundle->modules();
+	      const std::vector<DetectorModule*>& myModules = bundle->modules();
 	      for (const auto& module : myModules) {
 		// Get which MFB fanout branch the module is connected to.
 		const int fanoutBranchIndex = module->getEndcapFiberFanoutBranch();
@@ -9224,7 +9237,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
 	      // Create pattern related to the bundle.
 	      std::map<int, int> pattern;
 
-	      const std::vector<Module*>& myModules = bundle->modules();
+	      const std::vector<DetectorModule*>& myModules = bundle->modules();
 	      for (const auto& module : myModules) {
 		// Get which MFB fanout branch the module belongs to.
 		const int fanoutBranchIndex = module->getEndcapFiberFanoutBranch();
@@ -9398,7 +9411,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
 			     << any2str(myPowerChain->powerChainType()) << ","
 			     << any2str(myPowerChain->isLongBarrel()) << ",";
 
-	      const std::vector<Module*>& myModules = myGBT->modules();
+	      const std::vector<DetectorModule*>& myModules = myGBT->modules();
 	      for (const auto& module : myModules) {
 		std::stringstream moduleInfo;
 		moduleInfo << module->myDetId() << ", "
@@ -9460,7 +9473,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
 	    const PowerChain* myPowerChain = myGBT->getPowerChain();
 	    if (myPowerChain) {
 
-	      const std::vector<Module*>& myModules = myGBT->modules();
+	      const std::vector<DetectorModule*>& myModules = myGBT->modules();
 	      for (const auto& module : myModules) {
 	       
 		numberOfChipsPerDTC->Fill(myDTC->myid(), module->outerSensor().totalROCs());
@@ -9814,7 +9827,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
     std::set<std::tuple<std::string, int, int> > allModuleMaterialsRefs;
 
     for (auto& moduleIt : allModules) {
-      const Module* detectorModule = &(moduleIt.getModule());
+      const DetectorModule* detectorModule = &(moduleIt.getModule());
       double z1 = detectorModule->minZ();
       double z2 = detectorModule->maxZ();
       double r1 = detectorModule->minR();
@@ -9881,7 +9894,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
 					   const double z1, const double z2, const double r1, const double r2, const double rl, const double il,
 					   std::map<std::string, int>& subdetectorColors, const std::vector<int>& allColors, int& colorIndex,
 					   const bool isModule, const int serviceId, const double serviceLength, 
-					   const Module* detectorModule, const bool printModulesCsv) {
+					   const DetectorModule* detectorModule, const bool printModulesCsv) {
 
     bool isEmpty = true;
     int elementId = 0;

@@ -2,10 +2,10 @@
 #include <Math/Vector3D.h>
 
 #include "Polygon3d.hh"
-#include "Module.hh"
+#include "DetectorModule.hh"
 #include "AnalyzerVisitor.hh"
 
-void AnalyzerHelpers::drawModuleOnMap(const Module& m, double val, TH2D& map, TH2D& counter) {
+void AnalyzerHelpers::drawModuleOnMap(const DetectorModule& m, double val, TH2D& map, TH2D& counter) {
   const Polygon3d<4>& poly = m.basePoly();
   XYZVector start = (poly.getVertex(0) + poly.getVertex(3))/2;
   XYZVector end = (poly.getVertex(1) + poly.getVertex(2))/2;
@@ -17,7 +17,7 @@ void AnalyzerHelpers::drawModuleOnMap(const Module& m, double val, TH2D& map, TH
     counter.Fill(point.Z(), point.Rho(), 1);
   }
 }
-void AnalyzerHelpers::drawModuleOnMap(const Module& m, double val, TH2D& map) {
+void AnalyzerHelpers::drawModuleOnMap(const DetectorModule& m, double val, TH2D& map) {
   const Polygon3d<4>& poly = m.basePoly();
   XYZVector start = (poly.getVertex(0) + poly.getVertex(3))/2;
   XYZVector end = (poly.getVertex(1) + poly.getVertex(2))/2;

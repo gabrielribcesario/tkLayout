@@ -1,6 +1,15 @@
+#include <cmath>
+#include <utility>
+#include <map>
+#include <set>
 
+#include <TRandom3.h>
+
+#include "global_constants.hh"
 #include "AnalyzerVisitors/TriggerProcessorBandwidth.hh"
 #include "SimParms.hh"
+#include "Barrel.hh"
+#include "Tracker.hh"
 
 
 using AnalyzerHelpers::Circle;
@@ -39,8 +48,7 @@ double AnalyzerHelpers::calculatePetalAreaMC(const Tracker& tracker, const SimPa
   double maxR = tracker.maxR(); // points randomly generated in a 40 degrees circle slice
   double minR = tracker.minR();
   double aperture = 0.34906585 * 2; // 40 degrees
-  //double maxPhi = M_PI/2 + aperture/2;
-  double minPhi = M_PI/2 - aperture/2;
+  double minPhi = tkLayout::PI_2 - aperture/2;
   for (int i = 0; i < 100000; i++) {
     double rr  = minR + die.Rndm()*(maxR-minR);
     double phi = minPhi + die.Rndm()*aperture;
@@ -62,7 +70,7 @@ double AnalyzerHelpers::calculatePetalAreaModules(const Tracker& tracker, const 
     double curvatureR_, crossoverR_, numTriggerProcessorsPhi_;  
     int hits = 0;
     PetalAreaVisitor(double curvatureR, double crossoverR, double numTriggerProcessorsPhi) : curvatureR_(curvatureR), crossoverR_(crossoverR), numTriggerProcessorsPhi_(numTriggerProcessorsPhi) {}
-    void visit(const Module& m) {
+    void visit(const DetectorModule& m) {
       if (m.side() < 0) return;
       const double petalInterval = 2*M_PI / numTriggerProcessorsPhi_; // aka Psi
       for (int i = 0; i < numTriggerProcessorsPhi_; ++i) {

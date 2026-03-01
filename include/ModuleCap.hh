@@ -16,7 +16,7 @@
 #include <string>
 
 //#include <module.hh>
-#include "Module.hh"
+#include "DetectorModule.hh"
 #include <MaterialProperties.hh>
 #include <global_constants.hh>
 
@@ -32,10 +32,10 @@ namespace insur {
      */
     class ModuleCap : public MaterialProperties {
     public:
-        ModuleCap(Module& mod, int id);
+        ModuleCap(DetectorModule& mod, int id);
         virtual ~ModuleCap();
 
-        Module&             getModule();
+        DetectorModule&             getModule();
         virtual double      getSurface() const;
         virtual double      getLength() const;
         virtual int         getLayerOrDiscID() const {return m_layerOrDiscID; }
@@ -43,7 +43,7 @@ namespace insur {
         virtual void print();
         virtual void setDetName(const std::string& detName) {m_detName = detName;};
     protected:
-        Module* m_module;
+        DetectorModule* m_module;
         int     m_layerOrDiscID; // Unique layer/disc ID, whether layer or disc can be found out from module tag: BARREL/ENDCAP
         std::string m_detName;   // Unique barrel or disc name
     };

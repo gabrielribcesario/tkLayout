@@ -10,6 +10,15 @@
 #include <cmath>
 #include <vector>
 
+namespace tkLayout {
+  static constexpr double PI = 3.14159265358979323846;
+  static constexpr double PI_2 = 1.57079632679489661923;
+  static constexpr double TWO_PI = 6.28318530717958647692;
+  static constexpr double DEG_TO_RAD = PI / 180.0; // PI / 180
+  static constexpr double RAD_TO_DEG = 180.0 / PI; // 180 / PI
+  static constexpr double SQRT2 = 1.41421356237309504880;
+}
+
 namespace insur {
   static const std::vector<double> defaultMomenta = { 1.00e3, 10.00e3, 100.00e3 }; // In MeV/c
   static const std::vector<double> defaultTriggerMomenta = { 1.00e3, 2.00e3, 5.00e3, 10.00e3 }; // In MeV/c

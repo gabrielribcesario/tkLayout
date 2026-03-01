@@ -1,4 +1,16 @@
-#include "AnalyzerVisitors/IrradiationPower.hh"
+#include <sstream>
+#include <utility>
+#include <numeric>
+#include <vector>
+
+#include "global_constants.hh"
+#include "Barrel.hh"
+#include "RodPair.hh"
+#include "Endcap.hh"
+#include "DetectorModule.hh"
+#include "Units.hh"
+#include "SimParms.hh"
+#include "AnalyzerVisitors/IrradiationPowerVisitor.hh"
 
 void IrradiationPowerVisitor::preVisit() {
   sensorsPowerSummary.clear();

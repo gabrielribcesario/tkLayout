@@ -1,5 +1,5 @@
-#ifndef SIMPARMS_H
-#define SIMPARMS_H
+#ifndef SIMPARMS_HH
+#define SIMPARMS_HH
 
 #include <map>
 #include <string>
@@ -10,9 +10,10 @@
 #include "MessageLogger.hh"
 #include "Property.hh"
 #include "capabilities.hh"
-#include "Visitor.hh"
 #include "IrradiationMapsManager.hh"
 #include "Visitable.hh"
+#include "GeometryVisitor.hh"
+#include "ConstGeometryVisitor.hh"
 
 enum LumiRegShape { SPOT, FLAT, GAUSSIAN };
 

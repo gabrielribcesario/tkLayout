@@ -11,7 +11,7 @@ namespace insur {
     /**
      * The constructor links the cap to an existing module.
      */
-    ModuleCap::ModuleCap(Module& mod, int id) {
+    ModuleCap::ModuleCap(DetectorModule& mod, int id) {
         m_module = &mod;
         mod.setModuleCap(this);
         m_layerOrDiscID = id;
@@ -27,7 +27,7 @@ namespace insur {
      * Get the module object that this cap refers to.
      * @return A reference to the registered module
      */
-    Module& ModuleCap::getModule() {
+    DetectorModule& ModuleCap::getModule() {
         return *m_module;
     }
     

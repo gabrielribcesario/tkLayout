@@ -12,6 +12,8 @@
 
 #include "Track.hh"
 #include "DetectorModule.hh"
+#include "BarrelModule.hh"
+#include "EndcapModule.hh"
 #include "MessageLogger.hh"
 #include "ModuleCap.hh"
 #include "SimParms.hh"

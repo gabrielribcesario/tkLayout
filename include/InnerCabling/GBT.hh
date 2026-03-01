@@ -5,7 +5,7 @@
 #include <string>
 
 #include "Property.hh"
-#include "Module.hh"
+#include "DetectorModule.hh"
 #include "InnerCabling/PowerChain.hh"
 #include "InnerCabling/inner_cabling_functions.hh"
 
@@ -21,7 +21,7 @@ using insur::InnerBundle;
  */
 
 class GBT : public PropertyObject, public Buildable, public Identifiable<int> {
-  typedef std::vector<Module*> Container; 
+  typedef std::vector<DetectorModule*> Container; 
 
 public:
   GBT(PowerChain* myPowerChain, const std::string GBTId, const int myGBTIndexColor, const int numELinksPerModule);
@@ -29,7 +29,7 @@ public:
   // MODULES CONNECTED TO THE GBT
   const Container& modules() const { return modules_; }
   const int numModules() const { return modules_.size(); }
-  void addModule(Module* m);
+  void addModule(DetectorModule* m);
   const int numELinks() const { return numELinksPerModule_ * numModules(); } 
 
   // BUNDLE TO WHICH THE GBT IS CONECTED

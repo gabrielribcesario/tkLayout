@@ -5,7 +5,7 @@
 #include <string>
 
 #include "OuterCable.hh"
-#include "Module.hh"
+#include "DetectorModule.hh"
 
 
 class OuterDTC : public PropertyObject, public Buildable, public Identifiable<int> {

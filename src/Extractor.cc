@@ -4102,9 +4102,9 @@ namespace insur {
    * @return The thickness of the layer, or zero if the layer is degenerate
    */
   // Obsolete and not used.
-  double Extractor::findDeltaR(std::vector<Module*>::iterator start,
-                               std::vector<Module*>::iterator stop, double middle) {
-    std::vector<Module*>::iterator iter, mod1, mod2;
+  double Extractor::findDeltaR(std::vector<DetectorModule*>::iterator start,
+                               std::vector<DetectorModule*>::iterator stop, double middle) {
+    std::vector<DetectorModule*>::iterator iter, mod1, mod2;
     double dr = 0.0;
     iter = start;
     mod1 = stop;
@@ -4141,9 +4141,9 @@ namespace insur {
    * @return Half the thickness of the ring volume, or zero if the module collection is degenerate
    */
   // Obsolete and not used.
-  double Extractor::findDeltaZ(std::vector<Module*>::iterator start,
-                               std::vector<Module*>::iterator stop, double middle) {
-    std::vector<Module*>::iterator iter, mod1, mod2;
+  double Extractor::findDeltaZ(std::vector<DetectorModule*>::iterator start,
+                               std::vector<DetectorModule*>::iterator stop, double middle) {
+    std::vector<DetectorModule*>::iterator iter, mod1, mod2;
     double dz = 0.0;
     iter = start;
     mod1 = stop;

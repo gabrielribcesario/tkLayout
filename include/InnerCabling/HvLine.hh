@@ -5,7 +5,7 @@
 #include <string>
 
 #include "InnerCabling/PowerChain.hh"
-#include "Module.hh"
+#include "DetectorModule.hh"
 
 
 /*
@@ -13,7 +13,7 @@
  * All modules connected to a given HV line can be accessed, as well as the Power Chain they are connected to.
  */
 class HvLine : public PropertyObject, public Buildable, public Identifiable<int> {
-  typedef std::vector<Module*> Container;
+  typedef std::vector<DetectorModule*> Container;
 
 public:
   HvLine(const std::string name);
@@ -21,7 +21,7 @@ public:
   // MODULES CONNECTED TO THE HV LINE
   const Container& modules() const { return modules_; }
   const int numModules() const { return modules_.size(); }
-  void addModule(Module* m) { modules_.push_back(m); }
+  void addModule(DetectorModule* m) { modules_.push_back(m); }
 
   const std::string name() const { return name_; }
 

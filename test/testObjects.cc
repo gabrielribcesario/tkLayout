@@ -73,7 +73,7 @@ void closeSaveGeometry() {
   delete Si;
 }
 
-void placeModule(Module* aModule) {
+void placeModule(DetectorModule* aModule) {
   std::string moduleName;
   char moduleNumber[100];
   sprintf(moduleNumber, "%d", iModule++);
@@ -82,7 +82,7 @@ void placeModule(Module* aModule) {
   aModule->shapeVolume(top, Si, tkGeom);
 }
 
-void placeModuleLite(Module* aModule) {
+void placeModuleLite(DetectorModule* aModule) {
   std::string moduleName;
   char moduleNumber[100];
   sprintf(moduleNumber, "%d", iModule++);
@@ -92,9 +92,9 @@ void placeModuleLite(Module* aModule) {
   contour->Draw();
 }
 
-void createGeom(std::vector<std::vector<Module*>* > myGeo) {
-  std::vector<std::vector<Module*>* >::iterator layIt;
-  std::vector<Module*>::iterator modIt;
+void createGeom(std::vector<std::vector<DetectorModule*>* > myGeo) {
+  std::vector<std::vector<DetectorModule*>* >::iterator layIt;
+  std::vector<DetectorModule*>::iterator modIt;
 
 
   initializeGeometry();
@@ -108,9 +108,9 @@ void createGeom(std::vector<std::vector<Module*>* > myGeo) {
   closeSaveGeometry();
 }
 
-void createGeomLite(std::vector<std::vector<Module*>* > myGeo) {
-  std::vector<std::vector<Module*>* >::iterator layIt;
-  std::vector<Module*>::iterator modIt;
+void createGeomLite(std::vector<std::vector<DetectorModule*>* > myGeo) {
+  std::vector<std::vector<DetectorModule*>* >::iterator layIt;
+  std::vector<DetectorModule*>::iterator modIt;
 
   TCanvas *c1 = new TCanvas("mainCanvas");
 
@@ -127,7 +127,7 @@ void createGeomLite(std::vector<std::vector<Module*>* > myGeo) {
 
 
 // TEST 1: basic movements
-void test1(std::vector<Module*> &trialLayer)
+void test1(std::vector<DetectorModule*> &trialLayer)
 {
   BarrelModule* myModule  = new BarrelModule(DEBUG_DIAM,1);
   BarrelModule* myModule2 = new BarrelModule(DEBUG_DIAM,1);
@@ -141,7 +141,7 @@ void test1(std::vector<Module*> &trialLayer)
 }
 
 // TEST 2: performance
-void test2(std::vector<Module*> &trialLayer)
+void test2(std::vector<DetectorModule*> &trialLayer)
 {
   BarrelModule* aModule;
   XYZVector shift(0, 0, 0);
@@ -156,7 +156,7 @@ void test2(std::vector<Module*> &trialLayer)
 }
 
 // TEST 3: edge movements
-void test3(std::vector<Module*> &trialLayer)
+void test3(std::vector<DetectorModule*> &trialLayer)
 {
   BarrelModule* myModule = new BarrelModule(DEBUG_DIAM, 1);
   trialLayer.push_back(myModule);
@@ -178,7 +178,7 @@ void test3(std::vector<Module*> &trialLayer)
 
 
 // TEST 4: projection movement
-void test4(std::vector<Module*> &trialLayer)
+void test4(std::vector<DetectorModule*> &trialLayer)
 {
   BarrelModule* myModule = new BarrelModule(DEBUG_DIAM, 1);
   trialLayer.push_back(myModule);
@@ -219,7 +219,7 @@ void test4(std::vector<Module*> &trialLayer)
 
 // Test 5: getEdgeZSide, setEdgeZSide
 // with the margin option
-void test5(std::vector<Module*> &trialLayer) {
+void test5(std::vector<DetectorModule*> &trialLayer) {
 
   edge myEdge;
   BarrelModule* myModule;
@@ -245,7 +245,7 @@ void test5(std::vector<Module*> &trialLayer) {
 }
 
 // Test 6: creation of an EndcapModule
-void test6(std::vector<Module*> &trialLayer) {
+void test6(std::vector<DetectorModule*> &trialLayer) {
 
   EndcapModule* myModule;
   int nModules = 20;
@@ -270,11 +270,11 @@ void test6(std::vector<Module*> &trialLayer) {
 // marginBorderSide
 // projectSideRho
 
-void tests(std::vector<std::vector<Module*>* >& myGeom) {
+void tests(std::vector<std::vector<DetectorModule*>* >& myGeom) {
 
-  std::vector<Module*>* trialLayer;
+  std::vector<DetectorModule*>* trialLayer;
 
-  trialLayer = new std::vector<Module*>;
+  trialLayer = new std::vector<DetectorModule*>;
 
   myGeom.push_back(trialLayer);
 
@@ -288,7 +288,7 @@ void tests(std::vector<std::vector<Module*>* >& myGeom) {
 }
 
 int main (int argc, char* argv[]) {
-  std::vector<std::vector<Module*>* > myGeom;
+  std::vector<std::vector<DetectorModule*>* > myGeom;
 
   tests(myGeom);
 

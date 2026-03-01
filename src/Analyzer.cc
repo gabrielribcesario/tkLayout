@@ -14,9 +14,10 @@
 #include "MainConfigHandler.hh"
 #include "Hit.hh"
 #include "SimParms.hh"
+#include "MaterialBudget.hh"
 #include "AnalyzerVisitors/MaterialBillAnalyzer.hh"
 #include "AnalyzerVisitors/TriggerFrequency.hh"
-#include "AnalyzerVisitors/Bandwidth.hh"
+#include "AnalyzerVisitors/BandwidthVisitor.hh"
 #include "Units.hh"
 
 #undef MATERIAL_SHADOW
@@ -834,7 +835,7 @@ void Analyzer::fillTriggerEfficiencyGraphs(const Tracker& tracker,
     double eta   = iTrack->getEta();
     int    nHits = iTrack->getNActiveHits("all");
     totalProfile.Fill(eta, nHits);
-    //std::vector<std::pair<Module*,HitType>> hitModules = myTrack.getHitModules();
+    //std::vector<std::pair<DetectorModule*,HitType>> hitModules = myTrack.getHitModules();
 
     for(auto& iMomentum : triggerMomenta) {
 
@@ -1175,7 +1176,7 @@ void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& trac
   //std::vector<ModuleCap>::iterator moduleGuard;
 
   ModuleCap* myModuleCap;
-  Module* myModule;
+  DetectorModule* myModule;
   //  unsigned int nLocalMasses;
 
   /*
@@ -1384,7 +1385,7 @@ RILength Analyzer::analyzeModules(std::vector<std::vector<ModuleCap> >& tr,
   return res;
 }
 
-void printPosRefString(std::ostream& os, const Module& m, const string& delim = " ") {
+void printPosRefString(std::ostream& os, const DetectorModule& m, const string& delim = " ") {
   os << "subdetectorId=" << m.posRef().subdetectorId << delim << "z=" << m.posRef().z << delim << "rho=" << m.posRef().rho << " (" << m.center().Rho() << ")" << delim << "phi=" << m.posRef().phi << delim << "side=" << m.side();
 } 
 
@@ -1432,7 +1433,7 @@ RILength Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
           tmp.radiation = iter->getRadiationLength();
           tmp.interaction = iter->getInteractionLength();
 
-          Module& m = iter->getModule();
+          DetectorModule& m = iter->getModule();
           const double tiltAngle = m.tiltAngle();
           // 2D material maps
           fillMapRT(r, track.getTheta(), tmp);
@@ -1913,7 +1914,7 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
     const double& dz0  = myTrack->getDeltaZ0();
     const double& dp   = myTrack->getDeltaPOverP(rPos);
 
-    /*std::vector<std::pair<Module*,HitType>> hitModules = myTrack.getHitModules();
+    /*std::vector<std::pair<DetectorModule*,HitType>> hitModules = myTrack.getHitModules();
     if ( hitModules.at(0).first->getObjectKind() == Active) {
     std::cout << "hitModules.at(0).first->getResolutionLocalX() = " << hitModules.at(0).first->getResolutionLocalX() << std::endl;
     }*/
@@ -3046,7 +3047,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
       // Reset the hit counter
       // Generate a straight track and collect the list of hit modules
       aLine = shootDirection(randomBase, randomSpan);
-      std::vector<std::pair<Module*, HitType>> hitModules = trackHit( getLuminousRegion(), aLine.first, tracker.modules());
+      std::vector<std::pair<DetectorModule*, HitType>> hitModules = trackHit( getLuminousRegion(), aLine.first, tracker.modules());
       std::set<std::string> hitModulesDTC;
       // Reset the per-type hit counter and fill it
       resetTypeCounter(moduleTypeCount);
@@ -3344,8 +3345,8 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
      * @param moduleV vector of modules to be checked
      * @return the vector of hit modules
      */
-    std::vector<std::pair<Module*, HitType>> Analyzer::trackHit(const XYZVector& origin, const XYZVector& direction, Tracker::Modules& moduleV) {
-      std::vector<std::pair<Module*, HitType>> result;
+    std::vector<std::pair<DetectorModule*, HitType>> Analyzer::trackHit(const XYZVector& origin, const XYZVector& direction, Tracker::Modules& moduleV) {
+      std::vector<std::pair<DetectorModule*, HitType>> result;
       static const double BoundaryEtaSafetyMargin = 5. ; // track origin shift in units of zError to compute boundaries
 
       //static std::ofstream ofs("hits.txt");
@@ -3442,7 +3443,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
    * NB: This method is called for each track!!
    */
   const std::pair<int, int> Analyzer::computeCoveragePerLayer(const std::pair<XYZVector, double>& aLine, 
-							      const std::vector<std::pair<Module*, HitType>>& hitModules, 
+							      const std::vector<std::pair<DetectorModule*, HitType>>& hitModules, 
 							      const LayerNameVisitor& layerNames, 
 							      const bool isPixelTracker, 
 							      const double maxEta) {

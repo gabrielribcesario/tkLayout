@@ -3,7 +3,7 @@
 
 #include "global_constants.hh"
 #include "PtError.hh"
-#include "Module.hh"
+#include "DetectorModule.hh"
 
 
 class PtErrorAdapter {

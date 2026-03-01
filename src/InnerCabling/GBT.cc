@@ -17,7 +17,7 @@ GBT::GBT(PowerChain* myPowerChain, const std::string GBTId, const int myGBTIndex
 /*
  *  Assign a module to the GBT.
  */
-void GBT::addModule(Module* m) { 
+void GBT::addModule(DetectorModule* m) { 
   modules_.push_back(m);
 }
 

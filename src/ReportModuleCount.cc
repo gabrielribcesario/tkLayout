@@ -1,6 +1,6 @@
 #include <ReportModuleCount.hh>
 #include <Tracker.hh>
-#include <Module.hh>
+#include "DetectorModule.hh"
 #include <RootWeb.hh>
 
 #include <map>

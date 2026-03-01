@@ -131,8 +131,8 @@ namespace insur {
     Composite createComposite(std::string name, double density, MaterialProperties& mp, bool nosensors = false);
     std::vector<ModuleCap>::iterator findPartnerModule(std::vector<ModuleCap>::iterator i,
                                                        std::vector<ModuleCap>::iterator g, int ponrod, bool find_first = false);
-    double findDeltaR(std::vector<Module*>::iterator start, std::vector<Module*>::iterator stop, double middle);
-    double findDeltaZ(std::vector<Module*>::iterator start, std::vector<Module*>::iterator stop, double middle);
+    double findDeltaR(std::vector<DetectorModule*>::iterator start, std::vector<DetectorModule*>::iterator stop, double middle);
+    double findDeltaZ(std::vector<DetectorModule*>::iterator start, std::vector<DetectorModule*>::iterator stop, double middle);
     int findSpecParIndex(std::vector<SpecParInfo>& specs, std::string label);
     double calculateSensorThickness(ModuleCap& mc, MaterialTable& mt);
     std::string stringParam(std::string name, std::string value);
@@ -314,7 +314,7 @@ namespace insur {
 
 
       ModuleCap&           modulecap;
-      Module&              module;
+      DetectorModule&              module;
       std::vector<Volume*> volumes;
       std::string          moduleId;
       std::string          parentId;

@@ -21,6 +21,8 @@
 #include "Property.hh"
 #include "ModuleBase.hh"
 #include "ContourPoint.hh"
+#include "GeometryVisitor.hh"
+#include "ConstGeometryVisitor.hh"
 
 using std::vector;
 using std::string;

@@ -1,28 +1,20 @@
-#ifndef TRIGGERPROCESSORBANDWIDTH_H
-#define TRIGGERPROCESSORBANDWIDTH_H
+#ifndef TRIGGERPROCESSORBANDWIDTH_HH
+#define TRIGGERPROCESSORBANDWIDTH_HH
 
 #include <string>
 #include <map>
 #include <vector>
 #include <utility>
 
-#include "TH1.h"
-#include "TH2.h"
-#include "Math/Point2D.h"
-#include "TRandom3.h"
-#include "Math/Functor.h"
-#include "Math/BrentMinimizer1D.h"
+#include <TH1I.h>
+#include <TH2I.h>
+#include <Math/Functor.h>
+#include <Math/BrentMinimizer1D.h>
 
 #include "Tracker.hh"
 #include "SimParms.hh"
-
-#include "Visitor.hh"
+#include "ConstGeometryVisitor.hh"
 #include "SummaryTable.hh"
-
-using std::string;
-using std::map;
-using std::vector;
-using std::pair;
 
 namespace AnalyzerHelpers {
   struct Point { double x, y; };
@@ -40,10 +32,8 @@ namespace AnalyzerHelpers {
 
   bool isModuleInEtaSector(const SimParms& simParms, const Tracker& tracker, const DetectorModule& module, int etaSector); 
   bool isModuleInPhiSector(const SimParms& simParms, const DetectorModule& module, double crossoverR, int phiSector);
-
 }
 
-using namespace AnalyzerHelpers;
 
 class TriggerProcessorBandwidthVisitor : public ConstGeometryVisitor {
   typedef std::map<std::pair<int, int>, int> ProcessorConnections;
@@ -53,7 +43,7 @@ class TriggerProcessorBandwidthVisitor : public ConstGeometryVisitor {
   ProcessorInboundBandwidths processorInboundBandwidths_;
   ProcessorInboundStubsPerEvent processorInboundStubsPerEvent_;
 
-  map<string, map<pair<int, int>, double>> &triggerDataBandwidths_, triggerFrequenciesPerEvent_;
+  std::map<std::string, std::map<std::pair<int, int>, double>> &triggerDataBandwidths_, triggerFrequenciesPerEvent_;
 
   const Tracker* tracker_;
   const SimParms* simParms_;
@@ -64,14 +54,14 @@ public:
   SummaryTable processorCommonConnectionSummary;
   TH1I moduleConnectionsDistribution;
   TH2I processorCommonConnectionMap;
-  std::pair<Circle, Circle> sampleTriggerPetal;
+  std::pair<AnalyzerHelpers::Circle, AnalyzerHelpers::Circle> sampleTriggerPetal;
   double crossoverR;
 
   class ModuleConnectionData {
     int phiCpuConnections_, etaCpuConnections_;
     uint32_t detId_;
   public:
-    set<std::pair<int, int>> connectedProcessors;
+    std::set<std::pair<int, int>> connectedProcessors;
     int phiCpuConnections() const { return phiCpuConnections_; }
     int etaCpuConnections() const { return etaCpuConnections_; }
     uint32_t detId() const { return detId_; }
@@ -81,7 +71,7 @@ public:
     void detId (uint32_t detId) { detId_ = detId; }
     ModuleConnectionData() : phiCpuConnections_(0), etaCpuConnections_(0) {}
   };
-  typedef map<const Module*,ModuleConnectionData> ModuleConnectionMap; 
+  typedef std::map<const DetectorModule*, ModuleConnectionData> ModuleConnectionMap; 
   typedef std::map<std::pair<int, int>, std::set<int> > TriggerSectorMap;
 
   ModuleConnectionMap moduleConnections;
@@ -95,7 +85,8 @@ private:
   double inboundStubsPerEventTotal = 0.;
 public:
 
-  TriggerProcessorBandwidthVisitor(map<string, map<pair<int, int>, double>>& triggerDataBandwidths, map<string, map<pair<int, int>, double>>& triggerFrequenciesPerEvent) :
+  TriggerProcessorBandwidthVisitor(std::map<std::string, std::map<std::pair<int, int>, double>>& triggerDataBandwidths,
+                                   std::map<std::string, std::map<std::pair<int, int>, double>>& triggerFrequenciesPerEvent) :
       triggerDataBandwidths_(triggerDataBandwidths),
       triggerFrequenciesPerEvent_(triggerFrequenciesPerEvent)
   {}
@@ -106,6 +97,7 @@ public:
   void visit(const DetectorModule& m);
   void postVisit();
 };
+
 
 
 

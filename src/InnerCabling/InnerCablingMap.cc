@@ -227,7 +227,7 @@ const std::string InnerCablingMap::computeGBTId(const int powerChainId, const in
 /* Create a GBT, if does not exist yet.
  * Store it in the GBTs container.
  */
-void InnerCablingMap::createAndStoreGBTs(PowerChain* myPowerChain, Module* m, const std::string myGBTId, const int myGBTIndexInPowerChain, const int numELinksPerModule, std::map<std::string, std::unique_ptr<GBT> >& GBTs) {
+void InnerCablingMap::createAndStoreGBTs(PowerChain* myPowerChain, DetectorModule* m, const std::string myGBTId, const int myGBTIndexInPowerChain, const int numELinksPerModule, std::map<std::string, std::unique_ptr<GBT> >& GBTs) {
 
   auto found = GBTs.find(myGBTId);
   if (found == GBTs.end()) {
@@ -243,7 +243,7 @@ void InnerCablingMap::createAndStoreGBTs(PowerChain* myPowerChain, Module* m, co
 
 /* Connect module to GBT and vice-versa.
  */
-void InnerCablingMap::connectOneModuleToOneGBT(Module* m, GBT* myGBT) const {
+void InnerCablingMap::connectOneModuleToOneGBT(DetectorModule* m, GBT* myGBT) const {
   myGBT->addModule(m);
   m->setGBT(myGBT);
 }

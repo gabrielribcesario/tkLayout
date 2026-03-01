@@ -13,7 +13,9 @@ using std::string;
 
 #include "global_funcs.hh"
 #include "Property.hh"
-#include "Module.hh"
+#include "DetectorModule.hh"
+#include "BarrelModule.hh"
+#include "EndcapModule.hh"
 #include "Visitable.hh"
 
 #define MAX_WEDGE_CALC_LOOPS 100

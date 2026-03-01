@@ -1,17 +1,18 @@
+#include <string>
+#include <map>
+
 #include "AnalyzerVisitors/ModuleCount.hh"
-
-#include <Tracker.hh>
-#include <Barrel.hh>
-#include <Endcap.hh>
-#include <DetectorModule.hh>
-#include <RootWeb.hh>
-
+#include "Tracker.hh"
+#include "Barrel.hh"
+#include "Endcap.hh"
+#include "DetectorModule.hh"
+#include "RootWeb.hh"
 
 void ModuleCountVisitor::sortTypesAndDetectors() {
   int iType=1;
   int iSub=1;
-  for (auto aType : moduleTypes) aType.second=iType++;
-  for (auto aType : subDetectors) aType.second=iSub++;
+  for (auto& aType : moduleTypes) aType.second=iType++;
+  for (auto& aSub : subDetectors) aSub.second=iSub++;
 }
 
 RootWTable* ModuleCountVisitor::makeTable() {
@@ -26,14 +27,14 @@ RootWTable* ModuleCountVisitor::makeTable() {
   iType = 0;
   iSub = 0;
   // Row titles & column titles
-  for (auto aType : moduleTypes) moduleCountTable->setContent(++iType, 0, aType.first);
-  for (auto aSub : subDetectors) moduleCountTable->setContent(0, ++iSub, aSub.first);
+  for (const auto& aType : moduleTypes) moduleCountTable->setContent(++iType, 0, aType.first);
+  for (const auto& aSub : subDetectors) moduleCountTable->setContent(0, ++iSub, aSub.first);
   // The table central part
   iType=0;
-  for (auto aType : moduleTypes) {
+  for (const auto& aType : moduleTypes) {
     iType++;
     iSub=0;	
-    for (auto aSub : subDetectors) {
+    for (const auto& aSub : subDetectors) {
       iSub++;
       int cellContent = count_TypeSub[make_pair(aType.first, aSub.first)];
       if (cellContent!=0) moduleCountTable->setContent(iType, iSub, cellContent);
@@ -50,8 +51,8 @@ RootWTable* ModuleCountVisitor::makeTable() {
   iType = 0;
   iSub = 0;
   // Total columns, rows and corner
-  for (auto aType : moduleTypes) moduleCountTable->setContent(++iType, totalSub, typeTotal[aType.first]);
-  for (auto aSub : subDetectors) moduleCountTable->setContent(totalType, ++iSub, subTotal[aSub.first]);
+  for (const auto& aType : moduleTypes) moduleCountTable->setContent(++iType, totalSub, typeTotal[aType.first]);
+  for (const auto& aSub : subDetectors) moduleCountTable->setContent(totalType, ++iSub, subTotal[aSub.first]);
   moduleCountTable->setContent(totalType, totalSub, grandTotal);
       
   return moduleCountTable;
@@ -87,6 +88,3 @@ void ModuleCountVisitor::visit(const DetectorModule& m) {
     count_TypeSub[index]++;
   }
 }
-
-
-

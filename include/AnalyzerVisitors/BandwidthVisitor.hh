@@ -1,5 +1,5 @@
-#ifndef BANDWIDTH_H
-#define BANDWIDTH_H
+#ifndef BANDWIDTHVISITOR_HH
+#define BANDWIDTHVISITOR_HH
 
 #include <string>
 #include <map>
@@ -10,9 +10,8 @@
 
 #include "Sensor.hh"
 #include "SimParms.hh"
-#include "GeometryFactory.hh"
+#include "ConstGeometryVisitor.hh"
 #include "DetectorModule.hh"
-#include "Visitor.hh"
 
 class BandwidthVisitor : public ConstGeometryVisitor {
   TH1D &chanHitDistribution_, &bandwidthDistribution_, &bandwidthDistributionSparsified_;
@@ -62,6 +61,5 @@ public:
     }
   }
 };
-
 
 #endif

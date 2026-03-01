@@ -10,8 +10,8 @@
  * @brief This is the header file for the material budget container class
  */
 
-#ifndef _MATERIALBUDGET_H
-#define	_MATERIALBUDGET_H
+#ifndef MATERIALBUDGET_HH
+#define	MATERIALBUDGET_HH
 
 #include <vector>
 #include "Tracker.hh"

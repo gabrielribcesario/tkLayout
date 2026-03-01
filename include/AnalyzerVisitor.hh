@@ -3,19 +3,17 @@
 
 #include <TH2D.h>
 
-#include "Module.hh"
+#include "DetectorModule.hh"
 #include "PtErrorAdapter.hh"
-#include "Visitor.hh"
+#include "ConstGeometryVisitor.hh"
 #include "AnalyzerVisitors/TriggerDistanceTuningPlots.hh"
 
 namespace AnalyzerHelpers {
 
-  void drawModuleOnMap(const Module& m, double val, TH2D& map, TH2D& counter);
-  void drawModuleOnMap(const Module& m, double val, TH2D& map);
+  void drawModuleOnMap(const DetectorModule& m, double val, TH2D& map, TH2D& counter);
+  void drawModuleOnMap(const DetectorModule& m, double val, TH2D& map);
 
 }
-
-
 
 class TriggerEfficiencyMapVisitor : public ConstGeometryVisitor {
   TH2D& myMap_;
@@ -24,7 +22,7 @@ class TriggerEfficiencyMapVisitor : public ConstGeometryVisitor {
 public:
   TriggerEfficiencyMapVisitor(TH2D& map, double pt) : myMap_(map), myPt_(pt) { counter_ = (TH2D*)map.Clone(); }
 
-  void visit(const Module& aModule) {
+  void visit(const DetectorModule& aModule) {
     // returns immediately if module is not pt enabled
     if (aModule.sensorLayout() != PT) return;
     double myValue = PtErrorAdapter(aModule).getTriggerProbability(myPt_);
@@ -53,7 +51,7 @@ class PtThresholdMapVisitor : public ConstGeometryVisitor {
 public:
   PtThresholdMapVisitor(TH2D& map, double pt) : myMap_(map), myPt_(pt) { counter_ = (TH2D*)map.Clone(); }
 
-  void visit(const Module& aModule) {
+  void visit(const DetectorModule& aModule) {
     if (aModule.sensorLayout() != PT) return;
     double myValue = PtErrorAdapter(aModule).getPtThreshold(myPt_);
     if (myValue >= 0) AnalyzerHelpers::drawModuleOnMap(aModule, myValue, myMap_, *counter_);
@@ -88,7 +86,7 @@ public:
         counterSpacingAW_ = (TH2D*)suggestedSpacingMapAW.Clone();
   }
 
-  void visit(const Module& aModule) {
+  void visit(const DetectorModule& aModule) {
     if (aModule.sensorLayout() != PT) return;
     double mySuggestedSpacing = moduleOptimalSpacings_[&aModule][5]; // TODO: put this 5 in a configuration of some sort
     double mySuggestedSpacingAW = moduleOptimalSpacings_[&aModule][aModule.triggerWindow()];

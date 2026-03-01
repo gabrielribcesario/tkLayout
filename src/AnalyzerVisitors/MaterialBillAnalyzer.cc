@@ -1,7 +1,14 @@
-#include "AnalyzerVisitors/MaterialBillAnalyzer.hh"
-
-#include "ModuleCap.hh"
 #include <iostream>
+#include <map>
+#include <vector>
+#include <string>
+
+#include "AnalyzerVisitors/MaterialBillAnalyzer.hh"
+#include "ModuleCap.hh"
+#include "MaterialBudget.hh"
+#include "BarrelModule.hh"
+#include "EndcapModule.hh"
+#include "InactiveElement.hh"
 
 void MaterialBillAnalyzer::inspectInactiveElements(const std::vector<InactiveElement>& inactiveElements) {
   for (const auto& it : inactiveElements) {
@@ -33,14 +40,14 @@ void MaterialBillAnalyzer::inspectModules(std::vector<std::vector<insur::ModuleC
       };
       Visitor v;
       myModule->accept(v);
-      MaterialMap& layerMaterial = layerMaterialMap_[v.id_];
+      MaterialBillAnalyzerData::MaterialMap& layerMaterial = layerMaterialMap_[v.id_];
       const std::map<std::string, double>& localMasses = myModuleCap.getLocalMasses();
       for (const auto &it : localMasses)  layerMaterial[it.first]+=it.second;
     }
   }
 }
 
-void MaterialBillAnalyzer::inspectTracker(MaterialBudget& mb) {
+void MaterialBillAnalyzer::inspectTracker(insur::MaterialBudget& mb) {
   outputTable="";
 
   inspectModules(mb.getBarrelModuleCaps());
