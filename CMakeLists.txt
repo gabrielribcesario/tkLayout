@@ -8,20 +8,20 @@ include(GNUInstallDirs)
 
 # Find packages
 if (NOT TARGET ROOT)
-    find_package(ROOT COMPONENTS Geom RIO HistPainter REQUIRED)
+  find_package(ROOT COMPONENTS Core Physics Matrix Geom RIO Hist HistPainter Gpad REQUIRED)
 endif()
 include(${ROOT_USE_FILE})
 
 if (NOT TARGET Boost)
-    find_package(Boost COMPONENTS program_options filesystem system json REQUIRED)
+  find_package(Boost CONFIG COMPONENTS program_options filesystem json REQUIRED)
 endif()
 
-include_directories(${BOOST_INCLUDE_DIRS}
-                    ${ROOT_INCLUDE_DIRS} 
-                    ${PROJECT_SOURCE_DIR}/include/
-                    ${PROJECT_SOURCE_DIR}/include/AnalyzerVisitors
-                    ${PROJECT_SOURCE_DIR}/include/InnerCabling
-                    ${PROJECT_SOURCE_DIR}/include/OuterCabling
+include_directories(
+  ${ROOT_INCLUDE_DIRS} 
+  ${PROJECT_SOURCE_DIR}/include/
+  ${PROJECT_SOURCE_DIR}/include/AnalyzerVisitors
+  ${PROJECT_SOURCE_DIR}/include/InnerCabling
+  ${PROJECT_SOURCE_DIR}/include/OuterCabling
 )
 
 # ---Options and flags-----------------------------------------------------------
@@ -94,12 +94,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(INSTALLABLE_TARGETS "")
 
 # Compile options for all targets
-add_compile_options(-Wall
-                    -Werror
-                    -fmax-errors=2
-                    -O3
-                    -g
-                    )
+add_compile_options(
+  -Wall
+  -Werror
+  -fmax-errors=1
+  -O3
+  -g
+)
 
 add_link_options("-Wl,--copy-dt-needed-entries")
 
@@ -211,76 +212,121 @@ set(SOURCES_INNER_CABLING
   src/InnerCabling/PowerChain.cc
 )
 
-# ---SVN revision logic-----------------------------------------------------------
-
-# The Makefile runs ./getRevisionDefine to generate a flag (e.g. -DREVISION=123)
-# We execute this at CMake configure time.
-execute_process(
-    COMMAND "./getRevisionDefine"
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    OUTPUT_VARIABLE SVN_REV_DEFINE
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-message(STATUS "SVN Revision Flags: ${SVN_REV_DEFINE}")
-
-# ---Build executables-----------------------------------------------------------
-
-# Main Executable: tklayout
-# Corresponds to dependencies: OBJS + ANALYZERVISITORS + OUTERCABLING + INNERCABLING + SvnRevision.o
-add_executable(tklayout
-  src/tklayout.cc
+# tkLayout executable
+set(SOURCE_TKLAYOUT
+  src/tklayout.cc 
   src/SvnRevision.cc
-  ${SOURCES_CORE}
-  ${SOURCES_ANALYZER_VISITORS}
-  ${SOURCES_OUTER_CABLING}
-  ${SOURCES_INNER_CABLING}
 )
-target_link_libraries(tklayout
-  PUBLIC
-  ${ROOT_LIBRARIES}
-  Boost::system
-  Boost::filesystem
-  Boost::program_options
-  Boost::json
-)
-list(APPEND INSTALLABLE_TARGETS tklayout)
 
-# Question, probably no longer needed
-# add_executable(setup.bin ${SOURCE_SETUP} ${SOURCE_GRAPHVIZCREATOR} ${SOURCE_MAINHANDLER} ${SOURCE_GLOBALFUNCTIONS} ${HEADERS})
-# target_link_libraries(setup.bin ${BOOST_LIBRARIES})
-
-# Question, probably no longer needed
-# target_link_libraries(delphize ${BOOST_LIBRARIES} ${ROOT_LIBRARIES})
-# add_executable(delphize ${SOURCE_DELPHIZE})
-
-# Setup Executable
-# Corresponds to: MainConfigHandler.o global_funcs.o GraphVizCreator.o setup.cc
-add_executable(setup
+# setup executable
+set(SOURCE_SETUP
   src/setup.cc
   src/MainConfigHandler.cc
   src/global_funcs.cc
   src/GraphVizCreator.cc
 )
-target_link_libraries(setup ${ROOT_LIBRARIES} Boost::system Boost::filesystem)
-list(APPEND INSTALLABLE_TARGETS setup)
+
+# delphize executable
+set(SOURCE_DELPHIZE
+  src/delphize.cc
+)
+
+# ---SVN revision logic-----------------------------------------------------------
+
+# The Makefile runs ./getRevisionDefine to generate a flag (e.g. -DREVISION=123)
+# We execute this at CMake configure time.
+execute_process(
+  COMMAND "./getRevisionDefine"
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  OUTPUT_VARIABLE SVN_REV_DEFINE
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+message(STATUS "SVN Revision Flags: ${SVN_REV_DEFINE}")
+
+# ---Build static libraries-----------------------------------------------------------
+
+# Core objects
+add_library(CoreObjects STATIC ${SOURCES_CORE})
+target_link_libraries(CoreObjects
+  PUBLIC
+  ${ROOT_LIBRARIES}
+  Boost::program_options
+  Boost::filesystem
+  Boost::json
+)
+
+# Analyzer Visitors
+add_library(AnalyzerVisitors STATIC ${SOURCES_ANALYZER_VISITORS})
+target_link_libraries(AnalyzerVisitors
+  PUBLIC
+  ${ROOT_LIBRARIES}
+  Boost::json
+)
+
+# Outer Cabling
+add_library(OuterCabling STATIC ${SOURCES_OUTER_CABLING})
+target_link_libraries(OuterCabling
+  PUBLIC
+  ${ROOT_LIBRARIES}
+)
+
+# Inner Cabling
+add_library(InnerCabling STATIC ${SOURCES_INNER_CABLING})
+target_link_libraries(InnerCabling
+  PUBLIC
+  ${ROOT_LIBRARIES}
+)
+
+list(APPEND INSTALLABLE_TARGETS CoreObjects AnalyzerVisitors OuterCabling InnerCabling)
+
+# ---Build executables-----------------------------------------------------------
+
+# Main Executable: tklayout
+# Corresponds to dependencies: OBJS + ANALYZERVISITORS + OUTERCABLING + INNERCABLING + SvnRevision.o
+add_executable(tklayout ${SOURCE_TKLAYOUT})
+target_link_libraries(tklayout
+  PUBLIC 
+  ${ROOT_LIBRARIES}
+  Boost::program_options
+  Boost::filesystem
+  Boost::json
+  CoreObjects
+  AnalyzerVisitors
+  OuterCabling
+  InnerCabling
+)
+
+# delphize executable
+add_executable(delphize ${SOURCE_DELPHIZE})
+target_link_libraries(delphize
+  ${ROOT_LIBRARIES}
+  Boost::program_options
+)
+
+# Setup Executable
+# Corresponds to: MainConfigHandler.o global_funcs.o GraphVizCreator.o setup.cc
+add_executable(setup ${SOURCE_SETUP})
+target_link_libraries(setup 
+  ${ROOT_LIBRARIES}
+  Boost::filesystem
+)
 
 # Lightweight Executables
 
 # diskPlace
 add_executable(diskPlace src/diskPlace.cc)
-list(APPEND INSTALLABLE_TARGETS diskPlace)
 
 # ringPlace
 add_executable(ringPlace src/ringPlace.cc)
-list(APPEND INSTALLABLE_TARGETS ringPlace)
 
 # ringName
 add_executable(ringName src/ringName.cc)
-list(APPEND INSTALLABLE_TARGETS ringName)
 
 # Apply the SVN flags specifically to SvnRevision.cc as done in the Makefile
 # The script output likely contains the "-D" prefix, so we add it to compile options
 set_source_files_properties(src/SvnRevision.cc PROPERTIES COMPILE_OPTIONS "${SVN_REV_DEFINE}")
+
+list(APPEND INSTALLABLE_TARGETS tklayout setup diskPlace ringPlace ringName delphize)
 
 # ---Tests-----------------------------------------------------------
 
@@ -292,7 +338,6 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/test/testGraphVizCreator.cc")
   target_link_libraries(testGraphVizCreator 
     ${ROOT_LIBRARIES}
     Boost::filesystem
-    Boost::system
   )
 endif()
 
