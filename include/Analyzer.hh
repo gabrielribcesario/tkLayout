@@ -45,6 +45,7 @@
 #include "MaterialProperties.hh"
 #include "AnalyzerTools.hh"
 #include "AnalyzerVisitor.hh"
+#include "AnalyzerHelpers.hh"
 #include "AnalyzerVisitors/TriggerProcessorBandwidth.hh"
 
 class Hit;

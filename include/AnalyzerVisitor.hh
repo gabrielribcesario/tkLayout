@@ -1,19 +1,14 @@
 #ifndef ANALYZERVISITOR_H
 #define ANALYZERVISITOR_H
 
+#include <iostream>
 #include <TH2D.h>
 
+#include "AnalyzerHelpers.hh"
 #include "DetectorModule.hh"
 #include "PtErrorAdapter.hh"
 #include "ConstGeometryVisitor.hh"
 #include "AnalyzerVisitors/TriggerDistanceTuningPlots.hh"
-
-namespace AnalyzerHelpers {
-
-  void drawModuleOnMap(const DetectorModule& m, double val, TH2D& map, TH2D& counter);
-  void drawModuleOnMap(const DetectorModule& m, double val, TH2D& map);
-
-}
 
 class TriggerEfficiencyMapVisitor : public ConstGeometryVisitor {
   TH2D& myMap_;

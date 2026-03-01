@@ -109,6 +109,7 @@ set(SOURCES_CORE
   src/Analyzer.cc
   src/AnalyzerTools.cc
   src/AnalyzerVisitor.cc
+  src/AnalyzerHelpers.cc
   src/Bag.cc
   src/Barrel.cc
   src/capabilities.cc

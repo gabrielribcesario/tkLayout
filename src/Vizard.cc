@@ -16,6 +16,7 @@
 #include "MaterialBudget.hh"
 #include "BarrelModule.hh"
 #include "EndcapModule.hh"
+#include "AnalyzerHelpers.hh"
 #include "AnalyzerVisitors/LayerDiskSummaryVisitor.hh"
 #include "AnalyzerVisitors/SkewedLayersVisitor.hh"
 #include "AnalyzerVisitors/TiltedLayersVisitor.hh"
