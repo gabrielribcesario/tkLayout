@@ -13,6 +13,7 @@
 #include <iostream>
 #include <typeinfo>
 #include <typeindex>
+#include <string_view>
 
 #include <boost/property_tree/ptree.hpp>
 
@@ -167,13 +168,10 @@ public:
 
 typedef std::map<string, Parsable*> PropertyMap;
 
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdangling-reference"
 template<typename T, template<typename> class ValueHolder>
 class Property : public PropertyBase<T>, public Parsable {
   ValueHolder<T> valueHolder_;
-  const string& name_;
+  std::string_view name_;
 public:
   Property(const string& name, PropertyMap& registrar, const ValueHolder<T>& valueHolder = ValueHolder<T>()) : valueHolder_(valueHolder), name_(StringSet::ref(name)) { registrar[name] = this; }
   Property(const string& name, const ValueHolder<T>& valueHolder = ValueHolder<T>()) : valueHolder_(valueHolder), name_(StringSet::ref(name)) {}
@@ -181,16 +179,15 @@ public:
   void operator()(const T& value) { valueHolder_(value); }
   const T& operator()() const { 
     try { return valueHolder_(); } 
-    catch(PathfulException& pe) { pe.pushPath(name_); throw; }
+    catch(PathfulException& pe) { pe.pushPath(static_cast<std::string>(name_)); throw; }
   }
   bool state() const { return valueHolder_.state(); }
   void clear() { valueHolder_.clear(); }
   template<class ...U> void setup(const U&... valueHolderArgs) { valueHolder_.setup(valueHolderArgs...); } 
-  string name() const { return name_; }
+  std::string name() const { return static_cast<std::string>(name_); }
   void fromPtree(const ptree& pt) { valueHolder_(str2any<T>(pt.data())); }
   void fromString(const string& s) { valueHolder_(str2any<T>(s)); }
 };
-#pragma GCC diagnostic pop
 
 template<typename T, template<typename> class ValueHolder>
 class ReadonlyProperty : public Property<T, ValueHolder> {
