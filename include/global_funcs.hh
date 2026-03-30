@@ -138,15 +138,31 @@ inline std::string rtrim(std::string str, const std::string& chars = STD_WHITESP
  */
 inline std::string trim(std::string str, const std::string& chars = STD_WHITESPACE) { return ltrim(rtrim(str, chars), chars); }
 
-// In C++11, the default modulo operator fmod is the truncated modulo (ie -base/2 <= result < base/2).
-// Here, femod is the Euclidian modulo operator (ie 0 <= result < base).
-// Please note, though, that for double comparaison purposes, an approximation of 0., if negative, stays negative !
+/**
+ * @brief Computes the floating-point Euclidean remainder of the division operation `phi / base`
+ * with precision tolerance
+ * 
+ * The Euclidean floating-point remainder of the division operation `phi / base` calculated by
+ * this function is exactly the value `phi - equot * |base|`, where `equot` is `floor(phi / |base|)`.
+ * 
+ * The returned value is generally positive and is less than `base` in magnitude (i.e., 0 <= result < base).
+ * 
+ * This function incorporates a hardcoded  tolerance of `1.e-5` to adjust the result when 
+ * `phi` is approaching `base` from the left side.
+ * 
+ * @tparam ArgType Arithmetic type, the type of `phi` and `base`.
+ * @param phi, base Floating-point or integer values.
+ * @return Euclidean remainder of the division `phi / base` as defined above.
+ * @note For double comparison purposes, an approximation of 0.0, if negative, 
+ * stays negative.
+ */
 template<typename ArgType> 
 inline ArgType femod(const ArgType& phi, const ArgType& base) {
   static_assert(std::is_arithmetic<ArgType>::value, "Argument type must be numeric.");
+  static constexpr double epsilon = 1.e-5;
   ArgType result = fmod(phi, base);
-  if (fabs(result - base) < 1.e-5) result -= base;
-  if (result < -1.e-5) result += base;
+  if (fabs(result - base) < epsilon) result -= base;
+  if (result < -epsilon) result += base;
   return result;
 }
 
@@ -155,8 +171,9 @@ inline ArgType femod(const ArgType& phi, const ArgType& base) {
 template<typename ArgType>
 inline ArgType femodRounded(const ArgType& phi, const ArgType& base) {
   static_assert(std::is_arithmetic<ArgType>::value, "Argument type must be numeric.");
+  static constexpr double epsilon = 1.e-5;
   ArgType result = femod(phi, base);
-  if (fabs(result) < 1.e-5) result = 0;
+  if (fabs(result) < epsilon) result = 0;
   return result;
 }
 
