@@ -3019,14 +3019,14 @@ namespace insur {
                             phiy = phi_deg + yaw_deg + 180.0;
                             thetaz = 0.0;
                         } else {
-                            phix = phi_deg - yaw_deg - 90.0;
-                            phiy = phi_deg - yaw_deg + 180.0;
+                            phix = phi_deg + yaw_deg - 90.0;
+                            phiy = phi_deg + yaw_deg + 180.0;
                             thetaz = 180.0;
                         }
                     } else { // isZMinus
                         if (!isFlipped) {
-                            phix = phi_deg - yaw_deg + 90.0;
-                            phiy = phi_deg - yaw_deg;
+                            phix = phi_deg + yaw_deg + 90.0;
+                            phiy = phi_deg + yaw_deg;
                             thetaz = 180.0;
                         } else {
                             phix = phi_deg + yaw_deg - 90.0;
@@ -3686,9 +3686,9 @@ namespace insur {
 	          double phix = 0.0, phiy = 0.0, thetaz = 0.0;
 	          if (isZPlus) {
 	            if (!isFlipped) { phix = phi_deg + yaw_deg + 90.0; phiy = phi_deg + yaw_deg + 180.0; thetaz = 0.0; }
-	            else            { phix = phi_deg - yaw_deg - 90.0; phiy = phi_deg - yaw_deg + 180.0; thetaz = 180.0; }
+	            else            { phix = phi_deg + yaw_deg - 90.0; phiy = phi_deg + yaw_deg + 180.0; thetaz = 180.0; }
 	          } else {
-	            if (!isFlipped) { phix = phi_deg - yaw_deg + 90.0; phiy = phi_deg - yaw_deg;         thetaz = 180.0; }
+	            if (!isFlipped) { phix = phi_deg + yaw_deg + 90.0; phiy = phi_deg + yaw_deg;         thetaz = 180.0; }
 	            else            { phix = phi_deg + yaw_deg - 90.0; phiy = phi_deg + yaw_deg;         thetaz = 0.0; }
 	          }
 	          Rotation rot;
