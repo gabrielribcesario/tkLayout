@@ -144,18 +144,6 @@ namespace insur {
 #endif
  
 
-  namespace ModuleComplexHelpers {
-    const double computeExpandedModWidth(const double moduleWidth, 
-					 const double serviceHybridWidth, 
-					 const double deadAreaExtraWidth,
-					 const double chipNegativeXExtraWidth,
-					 const double chipPositiveXExtraWidth);
-    const double computeExpandedModLength(const double moduleLength, 
-					  const double frontEndHybridWidth, 
-					  const double deadAreaExtraLength);
-  };
-
-
   class ModuleComplex {
     public :
      ModuleComplex(std::string moduleName, std::string parentName, ModuleCap& modcap);
