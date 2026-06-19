@@ -21,6 +21,7 @@ namespace insur {
   Squid::Squid() :
       mainConfiguration(mainConfigHandler::instance()),
       t2c(mainConfiguration),
+      t2d(mainConfiguration),
       weightDistributionTracker(0.1),
       weightDistributionPixel(0.1) {
     tr = NULL;
@@ -402,10 +403,12 @@ namespace insur {
       if (mb) {
 	XmlTags outerTrackerXmlTags = XmlTags(false,false);
 	t2c.translate(tkMaterialCalc.getMaterialTable(), *mb, outerTrackerXmlTags, xmlDirectoryPath, xmlOutputPath, xmlOutputName, false); // false is setting a mysterious flag called wt which changes the way the XML is output. apparently setting it to true is of no use anymore.
+	t2d.translate(tkMaterialCalc.getMaterialTable(), *mb, outerTrackerXmlTags, xmlOutputPath, xmlOutputName);
 	if (pm) {
 	  XmlTags pixelXmlTags = XmlTags(true,geometryWithSubDisks);
 	  t2c.translate(pxMaterialCalc.getMaterialTable(), *pm, pixelXmlTags, xmlDirectoryPath, xmlOutputPath, xmlOutputName, false);
-       }
+	  t2d.translate(pxMaterialCalc.getMaterialTable(), *pm, pixelXmlTags, xmlOutputPath, xmlOutputName);
+        }
       }
       else {
        std::cout << "Squid::translateFullSystemToXML(): " << err_no_matbudget << std::endl;

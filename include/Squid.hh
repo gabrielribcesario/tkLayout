@@ -22,6 +22,7 @@
 #include <Analyzer.hh>
 #include <Vizard.hh>
 #include <tk2CMSSW.hh>
+#include <tk2DD4hep.hh>
 #include <boost/filesystem/exception.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -142,6 +143,7 @@ namespace insur {
     Vizard v;
     mainConfigHandler& mainConfiguration;
     tk2CMSSW t2c;
+    tk2DD4hep t2d;
     bool fileExists(std::string filename);
     std::string extractFileName(const std::string& full);
     Squid(const Squid& s);

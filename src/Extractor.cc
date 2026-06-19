@@ -2088,6 +2088,9 @@ namespace insur {
 	      shapeOp.type = intersec;
 	      shapeOp.rSolid1 = rinfo.name + "Cone";
 	      shapeOp.rSolid2 = rinfo.name + "Tub";
+	      shapeOp.trans.dx = 0.0;
+	      shapeOp.trans.dy = 0.0;
+	      shapeOp.trans.dz = 0.0;
 	      so.push_back(shapeOp);
 
 	      logic.name_tag = rinfo.name;
