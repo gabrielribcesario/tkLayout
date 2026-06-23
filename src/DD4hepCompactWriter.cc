@@ -441,14 +441,12 @@ void writeDetector(std::ostream& os, CMSSWBundle& d,
     os << "      </shapes>\n";
   }
 
-  if (!d.logic.empty()) {
-    os << "      <volumes>\n";
-    for (const auto& l : d.logic) writeVolume(os, l);
-    os << "      </volumes>\n";
-  }
-
   if (!d.positions.empty() || !d.algos.empty() || !d.logic.empty()) {
-    // Collect all child names so we can identify root volumes.
+    // Build the sets needed for root-volume and phantom-parent detection.
+    std::set<std::string> definedVols;
+    for (const auto& l : d.logic)
+      definedVols.insert(stripNS(l.name_tag));
+
     std::set<std::string> childNames;
     for (const auto& p : d.positions)
       childNames.insert(stripNS(p.child_tag));
@@ -458,8 +456,35 @@ void writeDetector(std::ostream& os, CMSSWBundle& d,
         childNames.insert(exp.childName);
     }
 
+    // Phantom parents: referenced as a parent in positions/algos but never
+    // defined in <volumes>.  These are DDD skeleton containers (Phase2OTBarrel,
+    // Phase2OTForward, …) that don't exist in the tkLayout IR.  Emit them as
+    // solid-less assembly volumes so the plugin can build an Assembly for each.
+    std::set<std::string> phantomParents;
+    for (const auto& p : d.positions) {
+      const std::string parent = stripNS(p.parent_tag);
+      if (!definedVols.count(parent) && parent != detName)
+        phantomParents.insert(parent);
+    }
+    for (const auto& a : d.algos) {
+      const std::string parent = stripNS(a.parent);
+      if (!definedVols.count(parent) && parent != detName)
+        phantomParents.insert(parent);
+    }
+
+    os << "      <volumes>\n";
+    for (const auto& l : d.logic) writeVolume(os, l);
+    for (const auto& name : phantomParents)
+      os << "        <volume name=\"" << name << "\" assembly=\"true\"/>\n";
+    os << "      </volumes>\n";
+
     os << "      <placements>\n";
-    // Root volumes (in logic but never a child) are placed into the assembly.
+    // Phantom parents are placed directly into the detector assembly.
+    for (const auto& name : phantomParents)
+      os << "        <placement parent=\"" << detName << "\""
+         << " child=\"" << name << "\""
+         << " copyno=\"1\" x=\"0*mm\" y=\"0*mm\" z=\"0*mm\"/>\n";
+    // True root volumes (defined, but never a child) also go into the assembly.
     for (const auto& l : d.logic) {
       const std::string name = stripNS(l.name_tag);
       if (!childNames.count(name)) {

@@ -16,6 +16,19 @@
 #include "DD4hep/DetFactoryHelper.h"
 #include "DD4hep/Printout.h"
 
+#include <stdexcept>
+#include <string>
+
+// Safe map lookup that names the missing key in the exception message.
+template<typename Map>
+static const typename Map::mapped_type& mapAt(const Map& m, const std::string& key,
+                                               const char* context) {
+  auto it = m.find(key);
+  if (it == m.end())
+    throw std::out_of_range(std::string(context) + ": key not found: \"" + key + "\"");
+  return it->second;
+}
+
 using namespace dd4hep;
 
 // ---------------------------------------------------------------------------
@@ -32,7 +45,7 @@ static RotationZYX rotFromXml(xml_comp_t rot) {
 // Phase 2: materialise <shapes>, <volumes>, <placements> from compact XML
 // ---------------------------------------------------------------------------
 
-static void buildShapes(Detector& description, xml_h shapes_h,
+static void buildShapes(Detector&, xml_h shapes_h,
                         std::map<std::string, Solid>& solidMap) {
   for (xml_coll_t c(shapes_h, _Unicode(box)); c; ++c) {
     xml_comp_t s(c);
@@ -86,8 +99,8 @@ static void buildShapes(Detector& description, xml_h shapes_h,
       xml_comp_t p(s2.child(_Unicode(position)));
       pos = Position(p.x(), p.y(), p.z());
     }
-    solidMap[name] = UnionSolid(solidMap.at(s1.attr<std::string>(_Unicode(ref))),
-                                 solidMap.at(s2.attr<std::string>(_Unicode(ref))),
+    solidMap[name] = UnionSolid(mapAt(solidMap, s1.attr<std::string>(_Unicode(ref)), "union s1"),
+                                 mapAt(solidMap, s2.attr<std::string>(_Unicode(ref)), "union s2"),
                                  Transform3D(pos));
     solidMap[name]->SetName(name.c_str());
   }
@@ -102,8 +115,8 @@ static void buildShapes(Detector& description, xml_h shapes_h,
       xml_comp_t p(s2.child(_Unicode(position)));
       pos = Position(p.x(), p.y(), p.z());
     }
-    solidMap[name] = SubtractionSolid(solidMap.at(s1.attr<std::string>(_Unicode(ref))),
-                                       solidMap.at(s2.attr<std::string>(_Unicode(ref))),
+    solidMap[name] = SubtractionSolid(mapAt(solidMap, s1.attr<std::string>(_Unicode(ref)), "subtraction s1"),
+                                       mapAt(solidMap, s2.attr<std::string>(_Unicode(ref)), "subtraction s2"),
                                        Transform3D(pos));
     solidMap[name]->SetName(name.c_str());
   }
@@ -118,8 +131,8 @@ static void buildShapes(Detector& description, xml_h shapes_h,
       xml_comp_t p(s2.child(_Unicode(position)));
       pos = Position(p.x(), p.y(), p.z());
     }
-    solidMap[name] = IntersectionSolid(solidMap.at(s1.attr<std::string>(_Unicode(ref))),
-                                        solidMap.at(s2.attr<std::string>(_Unicode(ref))),
+    solidMap[name] = IntersectionSolid(mapAt(solidMap, s1.attr<std::string>(_Unicode(ref)), "intersection s1"),
+                                        mapAt(solidMap, s2.attr<std::string>(_Unicode(ref)), "intersection s2"),
                                         Transform3D(pos));
     solidMap[name]->SetName(name.c_str());
   }
@@ -130,12 +143,15 @@ static void buildVolumes(Detector& description, xml_h volumes_h,
                          std::map<std::string, Volume>& volMap) {
   for (xml_coll_t c(volumes_h, _Unicode(volume)); c; ++c) {
     xml_comp_t v(c);
-    const std::string name   = v.nameStr();
-    const std::string solid  = v.attr<std::string>(_Unicode(solid));
-    const std::string matStr = v.attr<std::string>(_Unicode(material));
-    Material mat = description.material(matStr);
-    Volume vol(name, solidMap.at(solid), mat);
-    volMap[name] = vol;
+    const std::string name = v.nameStr();
+    if (!v.hasAttr(_Unicode(solid))) {
+      volMap[name] = Assembly(name);
+    } else {
+      const std::string solid  = v.attr<std::string>(_Unicode(solid));
+      const std::string matStr = v.attr<std::string>(_Unicode(material));
+      Material mat = description.material(matStr);
+      volMap[name] = Volume(name, mapAt(solidMap, solid, "buildVolumes"), mat);
+    }
   }
 }
 
@@ -160,11 +176,11 @@ static void buildPlacements(xml_h placements_h,
       rot = Rotation3D(rzyx);
     }
 
-    Volume parentVol = volMap.at(parent);
-    Volume childVol  = volMap.at(child);
+    Volume parentVol = mapAt(volMap, parent, "buildPlacements parent");
+    Volume childVol  = mapAt(volMap, child,  "buildPlacements child");
     parentVol.placeVolume(childVol, copyNo, Transform3D(rot, pos));
   }
-  (void)sens; // used in Phase 3 for setSensitiveDetector
+  (void)sens;
 }
 
 // ---------------------------------------------------------------------------
