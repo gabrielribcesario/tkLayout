@@ -55,9 +55,9 @@ namespace insur {
      * @param dz The shift along the z-axis
      */
     struct Translation {
-        double dx;
-        double dy;
-        double dz;
+        double dx = 0.0;
+        double dy = 0.0;
+        double dz = 0.0;
     };
     /**
      * @struct Element

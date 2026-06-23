@@ -197,35 +197,71 @@ void writeInfo(std::ostream& os, const std::string& detName) {
 }
 
 void writeElement(std::ostream& os, const Element& e) {
-  const std::string name = xml_tkLayout_material + e.tag;
+  // The underlying <element> gets a "_elem" suffix so it doesn't clash with the
+  // companion <material> of the same base name.  Volumes reference the <material>
+  // via description.material(); composites reference the <element> for fractions.
+  const std::string elemName = xml_tkLayout_material + e.tag + "_elem";
+  const std::string matName  = xml_tkLayout_material + e.tag;
   os << "    <element Z=\"" << e.atomic_number << "\""
      << " formula=\"" << e.tag << "\""
-     << " name=\"" << name << "\">\n"
+     << " name=\"" << elemName << "\">\n"
      << "      <atom unit=\"g/mol\" value=\"" << e.atomic_weight << "\"/>\n"
      << "    </element>\n";
+  // Pure-element material so <volume material="tkLayout_X"> resolves correctly.
+  os << "    <material name=\"" << matName << "\">\n"
+     << "      <D type=\"density\" unit=\"g/cm3\" value=\"" << e.density << "\"/>\n"
+     << "      <fraction n=\"1.0\" ref=\"" << elemName << "\"/>\n"
+     << "    </material>\n";
 }
 
-void writeComposite(std::ostream& os, const Composite& c) {
+void writeComposite(std::ostream& os, const Composite& c,
+                    const std::set<std::string>& elemTags) {
   os << "    <material name=\"" << c.name << "\">\n"
      << "      <D type=\"density\" unit=\"g/cm3\" value=\"" << c.density << "\"/>\n";
   for (const auto& kv : c.elements) {
-    os << "      <fraction n=\"" << kv.second
-       << "\" ref=\"" << xml_tkLayout_material << kv.first << "\"/>\n";
+    // Chemical elements get the _elem suffix (their <element> node is renamed);
+    // sub-composite keys reference the composite <material> directly.
+    const std::string ref = elemTags.count(kv.first)
+                            ? xml_tkLayout_material + kv.first + "_elem"
+                            : xml_tkLayout_material + kv.first;
+    os << "      <fraction n=\"" << kv.second << "\" ref=\"" << ref << "\"/>\n";
   }
   os << "    </material>\n";
+}
+
+// Standard DD4hep materials normally supplied by Legends.xml.
+// Emitted here so the XML is self-contained after dropping that include.
+void writeStdMaterials(std::ostream& os) {
+  os << "    <!-- standard materials -->\n"
+     << "    <element Z=\"1\"  formula=\"H\"  name=\"H\" ><atom unit=\"g/mol\" value=\"1.008\"/></element>\n"
+     << "    <element Z=\"7\"  formula=\"N\"  name=\"N\" ><atom unit=\"g/mol\" value=\"14.007\"/></element>\n"
+     << "    <element Z=\"8\"  formula=\"O\"  name=\"O\" ><atom unit=\"g/mol\" value=\"15.999\"/></element>\n"
+     << "    <material name=\"Vacuum\">\n"
+     << "      <D type=\"density\" unit=\"g/cm3\" value=\"1e-25\"/>\n"
+     << "      <fraction n=\"1.0\" ref=\"H\"/>\n"
+     << "    </material>\n"
+     << "    <material name=\"Air\">\n"
+     << "      <D type=\"density\" unit=\"g/cm3\" value=\"1.2e-3\"/>\n"
+     << "      <fraction n=\"0.7\" ref=\"N\"/>\n"
+     << "      <fraction n=\"0.3\" ref=\"O\"/>\n"
+     << "    </material>\n";
 }
 
 void writeMaterials(std::ostream& os,
                     std::vector<Element>&   elems,
                     std::vector<Composite>& comps) {
+  std::set<std::string> elemTags;
+  for (const auto& e : elems) elemTags.insert(e.tag);
+
   os << "  <materials>\n";
+  writeStdMaterials(os);
   for (const auto& e : elems)
     writeElement(os, e);
 
   std::set<std::string> emitted;
   for (const auto& c : comps) {
     if (emitted.count(c.name)) continue;
-    writeComposite(os, c);
+    writeComposite(os, c, elemTags);
     emitted.insert(c.name);
   }
   os << "  </materials>\n";
@@ -265,16 +301,31 @@ void writeShape(std::ostream& os, const ShapeInfo& s) {
          << " z=\""  << s.dz  << "*mm\"/>\n";
       break;
     case ShapeType::pc: {
-      // rzup[i] = (r_outer, z), rzdown[i] = (r_inner, z); sections by increasing z.
+      // rzup[i] = (r_outer, z), rzdown[i] = (r_inner, z).
+      // Collect, sort by z ascending, then emit.
+      struct ZPlane { double z, rmin, rmax; };
+      std::vector<ZPlane> planes;
+      planes.reserve(s.rzup.size());
+      for (std::size_t i = 0; i < s.rzup.size(); ++i) {
+        const double rmin = (i < s.rzdown.size()) ? s.rzdown[i].first : 0.0;
+        planes.push_back({s.rzup[i].second, rmin, s.rzup[i].first});
+      }
+      std::sort(planes.begin(), planes.end(),
+                [](const ZPlane& a, const ZPlane& b){ return a.z < b.z; });
+      // Nudge the outermost planes outward by 1 nm so they are always
+      // mathematically distinct from their neighbours even when the source
+      // data places them at the same z.
+      constexpr double kEps = 1e-6; // mm  (1 nm)
+      if (planes.size() >= 2) {
+        planes.front().z -= kEps;
+        planes.back() .z += kEps;
+      }
       os << "        <polycone name=\"" << name
          << "\" startphi=\"0\" deltaphi=\"360*deg\">\n";
-      const std::size_t n = s.rzup.size();
-      for (std::size_t i = 0; i < n; ++i) {
-        const double rmin = (i < s.rzdown.size()) ? s.rzdown[i].first : 0.0;
-        os << "          <zplane z=\""    << s.rzup[i].second << "*mm\""
-           << " rmin=\"" << rmin           << "*mm\""
-           << " rmax=\"" << s.rzup[i].first << "*mm\"/>\n";
-      }
+      for (const auto& zp : planes)
+        os << "          <zplane z=\""    << zp.z    << "*mm\""
+           << " rmin=\"" << zp.rmin << "*mm\""
+           << " rmax=\"" << zp.rmax << "*mm\"/>\n";
       os << "        </polycone>\n";
       break;
     }
@@ -458,12 +509,12 @@ void DD4hepCompactWriter::tracker(CMSSWBundle& d, std::ofstream& out,
   writeInfo(body, detName);
 
   body << "\n"
-       << "  <includes>\n"
-       << "    <gdmlFile ref=\"${DD4hepINSTALL}/DDCore/include/Legends.xml\"/>\n"
-       << "  </includes>\n"
-       << "\n"
-       << "  <define/>\n"
-       << "\n";
+       << "  <define>\n"
+       << "    <constant name=\"world_side\" value=\"10*m\"/>\n"
+       << "    <constant name=\"world_x\"    value=\"world_side/2\"/>\n"
+       << "    <constant name=\"world_y\"    value=\"world_side/2\"/>\n"
+       << "    <constant name=\"world_z\"    value=\"world_side/2\"/>\n"
+       << "  </define>\n\n";
 
   writeMaterials(body, d.elements, d.composites);
 

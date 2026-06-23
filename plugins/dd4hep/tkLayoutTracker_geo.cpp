@@ -77,11 +77,10 @@ static void buildShapes(Detector& description, xml_h shapes_h,
   for (xml_coll_t c(shapes_h, _Unicode(union)); c; ++c) {
     xml_comp_t s(c);
     const std::string name = s.nameStr();
-    xml_comp_t s1(s.child(_Unicode(shape)));
-    // second shape child — iterate to get second one
     xml_coll_t shapeChildren(s, _Unicode(shape));
-    ++shapeChildren; // skip first
-    xml_comp_t s2(*shapeChildren);
+    xml_comp_t s1(shapeChildren);
+    ++shapeChildren;
+    xml_comp_t s2(shapeChildren);
     Position pos(0,0,0);
     if (s2.hasChild(_Unicode(position))) {
       xml_comp_t p(s2.child(_Unicode(position)));
@@ -96,8 +95,8 @@ static void buildShapes(Detector& description, xml_h shapes_h,
     xml_comp_t s(c);
     const std::string name = s.nameStr();
     xml_coll_t shapeChildren(s, _Unicode(shape));
-    xml_comp_t s1(*shapeChildren); ++shapeChildren;
-    xml_comp_t s2(*shapeChildren);
+    xml_comp_t s1(shapeChildren); ++shapeChildren;
+    xml_comp_t s2(shapeChildren);
     Position pos(0,0,0);
     if (s2.hasChild(_Unicode(position))) {
       xml_comp_t p(s2.child(_Unicode(position)));
@@ -112,8 +111,8 @@ static void buildShapes(Detector& description, xml_h shapes_h,
     xml_comp_t s(c);
     const std::string name = s.nameStr();
     xml_coll_t shapeChildren(s, _Unicode(shape));
-    xml_comp_t s1(*shapeChildren); ++shapeChildren;
-    xml_comp_t s2(*shapeChildren);
+    xml_comp_t s1(shapeChildren); ++shapeChildren;
+    xml_comp_t s2(shapeChildren);
     Position pos(0,0,0);
     if (s2.hasChild(_Unicode(position))) {
       xml_comp_t p(s2.child(_Unicode(position)));

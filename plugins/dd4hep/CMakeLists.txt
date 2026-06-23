@@ -21,5 +21,9 @@ dd4hep_add_plugin(tkLayoutDD4hep
 )
 
 install(TARGETS tkLayoutDD4hep
-  LIBRARY DESTINATION lib
+        LIBRARY DESTINATION $ENV{DD4HEP_LIBRARY_PATH}
+)
+
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/libtkLayoutDD4hep.components
+        DESTINATION $ENV{DD4HEP_LIBRARY_PATH}
 )
