@@ -3134,8 +3134,6 @@ namespace insur {
 	  diskZ = (ringzmin.at(firstRingIndex) + ringzmax.at(firstRingIndex) + ringzmin.at(secondRingIndex) + ringzmax.at(secondRingIndex)) / 4.;
 	}
 	
-	//double diskThickness = zmax - zmin;
-	double diskThickness = 2. * MAX(fabs(zmin - diskZ), fabs(zmax - diskZ));
 
 	//shape.type = tp;
         shape.rmin = 0.0;
@@ -3149,7 +3147,7 @@ namespace insur {
 	ril.index = discNumber;
 
 
-	//if (zmin > 0) 	
+	//if (zmin > 0)
         std::ostringstream dname, pconverter, sdname;
 	//disk name
         dname << trackerXmlTags.tracker << xml_disc << discNumber; // e.g. OTDisc6
@@ -3452,6 +3450,7 @@ namespace insur {
         sdidx.insert(1);
         sdidx.insert(2);
         
+        double maxSubDiscReach = 0.;
         for (const auto& sdIndex : sdidx) {
             std::ostringstream sdname;
             sdname << dname.str() << xml_subdisc << sdIndex; // e.g. OTDisc6SubDisc2
@@ -3465,12 +3464,13 @@ namespace insur {
                       const ERingInfo& myRingInfo = found->second;
                       subDiskZPosition+=myRingInfo.surface1ZMid;
                       ringZ+=myRingInfo.zMid;
-                  }   
+                  }
                 }
               }
               subDiskZPosition=subDiskZPosition/2.;
               ringZ=ringZ/2.;
-                
+
+            double maxRingReach = 0.;
             for (const auto& ringIndex : ridx) {
             const auto& found = rinfo.find(nRings*(sdIndex-1)+ringIndex);
             if (found != rinfo.end()) {
@@ -3478,11 +3478,16 @@ namespace insur {
               if (myRingInfo.numModules > 0) {
 
                 //When we have subdisks all rings are "flat" and there are no sections to be removed
+                // Size the ring container to enclose its EModule child (placed at local Z=0,
+                // half-thickness moduleThickness/2), rather than dividing a global diskThickness.
+                const double ringHalfThk = myRingInfo.moduleThickness/2.0 + xml_epsilon;
                 shape.name_tag = myRingInfo.name;
                 shape.rmin = myRingInfo.radiusMin - xml_epsilon;
                 shape.rmax = myRingInfo.radiusMax + xml_epsilon;
-                shape.dz = diskThickness/(2*sdidx.size()*ridx.size()); //Bit of a hack, but works for now.
+                shape.dz = ringHalfThk;
                 s.push_back(shape);
+                const double ringPosZ = myRingInfo.surface1ZMid - subDiskZPosition;
+                maxRingReach = std::max(maxRingReach, std::fabs(ringPosZ) + ringHalfThk);
 	      }
 	      
 
@@ -3529,10 +3534,12 @@ namespace insur {
             }
           }
           //subdisc
+          // Size the sub-disk to enclose all its rings (bottom-up), not a global diskThickness fraction.
+          const double subDiscDz = maxRingReach + xml_epsilon;
           shape.name_tag = sdname.str();
           shape.rmin = rmin - 2 * xml_epsilon;
           shape.rmax = rmax + 2 * xml_epsilon;
-          shape.dz = (diskThickness / (2.0*sdidx.size())) + 2 * xml_epsilon; //(zmax - zmin) / 2.0; This is a hack, but it works for now
+          shape.dz = subDiscDz;
           s.push_back(shape);
 
           shape.name_tag = sdname.str();
@@ -3544,7 +3551,13 @@ namespace insur {
           pos.parent_tag = trackerXmlTags.nspace + ":" + dname.str();
           pos.child_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
           pos.trans.dz = subDiskZPosition - ringZ;
+          maxSubDiscReach = std::max(maxSubDiscReach, std::fabs(subDiskZPosition - ringZ) + subDiscDz);
           p.push_back(pos);
+
+          // Accumulate this sub-disk's far reach within the disc (sub-disk placed at
+          // pos.trans.dz = subDiskZPosition - ringZ).
+          const double subDiscPosZ = subDiskZPosition - ringZ;
+          maxSubDiscReach = std::max(maxSubDiscReach, std::fabs(subDiscPosZ) + subDiscDz);
 
           sdspec.partselectors.push_back(logic.name_tag);
           sdspec.moduletypes.push_back(minfo_zero);
@@ -3553,10 +3566,11 @@ namespace insur {
         }
 
         //disc
+        // Size the disc to enclose both sub-disks (bottom-up), not a global diskThickness fraction.
         shape.name_tag = dname.str();
         shape.rmin = rmin - 2 * xml_epsilon;
         shape.rmax = rmax + 2 * xml_epsilon;
-        shape.dz = diskThickness / 2.0 + 2 * xml_epsilon; //(zmax - zmin) / 2.0;
+        shape.dz = maxSubDiscReach + xml_epsilon;
         s.push_back(shape);
 
 	shape.name_tag = dname.str();
