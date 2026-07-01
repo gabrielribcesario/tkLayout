@@ -4488,7 +4488,7 @@ namespace insur {
 							     center(module.center()),
                                                              normal(module.normal()),
                                                              prefix_material(xml_hybrid_comp) {
-    expandedModThickness = DetectorModule::computeExpandedModThickness(module.isPixelModule(),
+    expandedModThickness = DetectorModule::computeEnclosingModThickness(module.isPixelModule(),
         module.isTimingModule(), sensorDistance, sensorThickness, supportPlateThickness,
         chipThickness, hybridThickness);
     if (!module.isPixelModule()) {
@@ -4592,7 +4592,8 @@ namespace insur {
 	dz = supportPlateThickness;
 	posx = 0.;
 	posy = 0.;
-	posz = - ( ( sensorDistance + supportPlateThickness )/2. + sensorThickness ); 
+	posz = DetectorModule::computeSupportPlatePosZ(module.isPixelModule(), module.isTimingModule(),
+	                                               sensorDistance, sensorThickness, supportPlateThickness);
 	// SupportPlate
 	vol[xml_SupportPlate] = new Volume(moduleId+"SupportPlate",xml_SupportPlate,parentId,dx,dy,dz,posx,posy,posz);
       }
@@ -4670,7 +4671,8 @@ namespace insur {
 	dz = supportPlateThickness;
 	posx = 0.;
 	posy = 0.;
-	posz = - sensorThickness / 2. - supportPlateThickness / 2.;
+	posz = DetectorModule::computeSupportPlatePosZ(module.isPixelModule(), module.isTimingModule(),
+	                                               sensorDistance, sensorThickness, supportPlateThickness);
 	// SupportPlate
 	vol[xml_SupportPlate] = new Volume(moduleId+"SupportPlate",xml_SupportPlate,parentId,dx,dy,dz,posx,posy,posz);
       }
