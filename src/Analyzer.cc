@@ -2633,8 +2633,10 @@ void Analyzer::clearCells() {
  */
 void Analyzer::setHistogramBinsBoundaries(int bins, double min, double max) {
   // isolines
+#ifdef MATERIAL_SHADOW
   isor.SetBins(bins, 0.0, geom_max_length, bins / 2, 0.0, geom_max_radius + geom_inactive_volume_width);
   isoi.SetBins(bins, 0.0, geom_max_length, bins / 2, 0.0, geom_max_radius + geom_inactive_volume_width);
+#endif
   // Material distribution maps
   const double materialMapMaxY = (geom_max_radius + geom_inactive_volume_width) * geom_safety_factor;
   const double materialMapMaxX = geom_max_length * geom_safety_factor;
@@ -2658,6 +2660,10 @@ void Analyzer::setHistogramBinsBoundaries(int bins, double min, double max) {
  * @param maxeta The maximum value of eta that will be considered for tracking
  */
 void Analyzer::setCellBoundaries(int bins, double minr, double maxr, double mineta, double maxeta) {
+#ifndef MATERIAL_SHADOW
+  // cells are only ever read from inside MATERIAL_SHADOW blocks
+  return;
+#else
   double rstep, etastep;
   rstep = 2 * (maxr - minr) / bins;
   etastep = (maxeta - mineta) / bins;
@@ -2678,6 +2684,7 @@ void Analyzer::setCellBoundaries(int bins, double minr, double maxr, double mine
       cells.at(i).at(j).etamax = mineta + (i+1) * etastep;
     }
   }
+#endif
 }
 
 
