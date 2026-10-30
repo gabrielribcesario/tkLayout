@@ -1,6 +1,7 @@
 // Convert E-links to GBT
 // TBPX
 @include-std CMS_Phase2/Pixel/Conversions/Components/TBPX_L1_Elinks_to_1GBT
+@include-std CMS_Phase2/Pixel/Conversions/Components/TBPX_L1_Elinks_to_1GBT_v202602
 @include-std CMS_Phase2/Pixel/Conversions/Components/TBPX_L1_1chipmodules_Elinks_to_1GBT
 @include-std CMS_Phase2/Pixel/Conversions/Components/TBPX_L2_Elinks_to_1GBT
 @include-std CMS_Phase2/Pixel/Conversions/Components/TBPX_L2_1chipmodules_Elinks_to_1GBT

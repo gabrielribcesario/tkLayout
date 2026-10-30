@@ -6,11 +6,11 @@ Component {
   scaleOnSensor 0
   // Two conductors
   Element {
-    elementName Cu_Elinks_TBPX_L1
-    quantity 1.015 //it was 1.547
+    elementName Cu_Elinks_TBPX_L1_v202602
+    quantity 2.03 //it was 1.547
     unit g/m
     targetVolume 1
-    //Angela: 2.03 g/m divided by 7 elinks and times 3.5 because we have 3.5 elinks per module
+    // 2.03 g/m for 7 elinks per module, 3.5 per chip
   }
   // Two insulations
   Element {
