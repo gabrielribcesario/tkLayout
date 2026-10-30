@@ -4,10 +4,24 @@ Component {
   scaleOnSensor 0
   Element {
     elementName Si
-    quantity  0.175 //0.0063475776     // Mass calculated for a 0.15 mm extra dead area width & length, on a 16.8 mm x 43.45 mm sensor.
+    quantity  0.0095 // Mass of the exported ring: 27.16 mm2 x 0.15 mm x 2.3296 g/cm3.
     unit g              
     targetVolume 4
     // Angela from INFN Torino: g/mm3 = 0.54; g = 16.20 ==> g/(g/mm3) = 30mm3 and now I have to divide for the active area: (16.8 x 21.6)mm2 chip size ==> 30mm3/[(17.15x21.95)-(16.9x21.6)]mm2 = 0.08mm per chip which times 2 chips is 0.16 CAVEAT: here I'm ignoring the dead area
 
 }
+}
+
+// Sensors are 250 um thick: 150 um active + 100 um passive.
+// tkLayout has one sensorThickness, used for the sensitive volume, so the passive layer goes on the chip volume.
+Component {
+  componentName "IT Module: Sensor (passive Si)"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName Si
+    quantity 0.1655 // 0.175 g from the lab measurement, minus the dead-area ring
+    unit g
+    targetVolume 3
+  }
 }

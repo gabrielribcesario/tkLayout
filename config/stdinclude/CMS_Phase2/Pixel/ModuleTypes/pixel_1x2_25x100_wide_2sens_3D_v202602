@@ -14,9 +14,9 @@ sensorLayout mono
 powerPerModule 0 // mW
 
 // Cross check the numbers. Confermed by Antonio sensor thickness 250um = (150um active + 100um passive)
-sensorThickness 0.250 //it was 0.150
+sensorThickness 0.150
 hybridThickness 0.5
-chipThickness 0.5 // -> we should change it
+chipThickness 0.6 // 0.5 + 0.1 mm passive Si
 
 offsetForSensors 11.025
 centralDeadAreaLength 0.45
