@@ -395,8 +395,11 @@ public:
                                          supportPlateThickness, chipThickness, hybridThickness)
              + supportPlateThickness;
     }
-    return computeExpandedModThickness(isPixel, isTiming, dsDistance, sensorThickness,
-                                       supportPlateThickness, chipThickness, hybridThickness);
+    const double expandedModThickness = computeExpandedModThickness(isPixel, isTiming, dsDistance, sensorThickness,
+                                                                    supportPlateThickness, chipThickness, hybridThickness);
+    // Pixel: material span is t_s + chip + hybrid, centered on the sensor. Mirror the thicker side
+    // to make the box symmetric about z=0.
+    return isPixel ? expandedModThickness + fabs(chipThickness - hybridThickness) : expandedModThickness;
   }
 
   std::map<std::string, double> extremaWithHybrids() const;
