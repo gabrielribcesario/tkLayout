@@ -608,6 +608,7 @@ OT807_IT744.cfg                      Just like OT806_IT744, but with fixed modul
 OT807_IT749.cfg                      Just like OT806_IT749, but with fixed module orientation in TB2S and TBPS (flat and tilted sections).
 OT807_IT745.cfg                      Just like OT807_IT749, but without gap and using module_BPIX_L1_1x2_2500_2sens_3D instead of module_BPIX_L1_1x2_2500_3D
 OT807_IT746.cfg                      Just like OT807_IT749, but with the big gap 1.3.
+OT807_IT747.cfg                      Just like OT807_IT749, but with updated TBPX module material (BPIX_7_4_7).
 OT800_IT712.cfg                      Just like OT800_IT711, but with big pixels at the inter-ROC boundaries of the planar
                                      1x2 and 2x2 modules.
 
