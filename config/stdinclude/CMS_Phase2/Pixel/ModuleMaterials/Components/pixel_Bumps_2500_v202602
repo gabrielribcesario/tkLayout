@@ -1,0 +1,14 @@
+// Bumps for a 2500 um^2 pixel size
+// 30 mg per ROC, the value merged into pixel_ROC in recent_tpbx_material.
+
+Component {
+  componentName "IT Module: Bump bonds"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName Pix_Bumps
+    quantity 0.060
+    unit g
+    targetVolume 3
+  }
+}
