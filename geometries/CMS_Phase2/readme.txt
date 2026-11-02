@@ -611,6 +611,8 @@ OT807_IT746.cfg                      Just like OT807_IT749, but with the big gap
 OT807_IT747.cfg                      Just like OT807_IT749, but with updated TBPX module material (BPIX_7_4_7).
 OT800_IT712.cfg                      Just like OT800_IT711, but with big pixels at the inter-ROC boundaries of the planar
                                      1x2 and 2x2 modules.
+OT808_IT750.cfg                      Just like OT807_IT747, but with big pixels at the inter-ROC boundaries and updated module positions
+                                     in TFPX and TEPX. TBPX L3 and L4 have a 0.435 mm dead edge, with the same module mass.
 
 NOTE: Pixel_V7_4_4.cfg was reverted to commit 0be8eb5 and no longer includes TEPX_7_4_4.cfg
       (it now uses BPIX_7_4_4.cfg + Pixel_V6/TFPX_6_4_0.cfg + Pixel_V6/TEPX_6_1_3.cfg instead).
