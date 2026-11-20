@@ -1005,6 +1005,7 @@ namespace insur {
         double centerRadius;
         bool isFlipped;
         bool isSkewed;
+        double skewAngle;
       };
       std::map<int, ITLadderPlacementData> itLadderByPhiIdx;
       if (isPixelTracker) {
@@ -1016,7 +1017,8 @@ namespace insur {
                 mod.getModule().center().Phi(),
                 mod.getModule().center().Rho(),
                 mod.getModule().flipped(),
-                mod.getModule().isSkewed()
+                mod.getModule().isSkewed(),
+                mod.getModule().skewAngle()
               };
             }
           }
@@ -1943,7 +1945,7 @@ namespace insur {
 	// Emit one DDTrackerXYZPosAlgo block per ladder from the pre-pass map.
 	auto emitITLadderAlgo = [&](int phiIdx, const ITLadderPlacementData& data) {
 	  const std::string& templateName = data.isFlipped ? ladderName.str() : unflippedLadderName.str();
-	  const std::string rotName = registerLadderPhiRotation(data.centerPhi);
+	  const std::string rotName = registerLadderPhiRotation(data.centerPhi + data.skewAngle);
 	  const std::string rotEntry = nameSpace + ":" + rotName;
 	  alg.name   = xml_xyzpos_algo;
 	  alg.parent = nameSpace + ":" + parentName;
